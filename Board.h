@@ -33,9 +33,6 @@ private:
 	std::map<Coordinate, char> _boardMap;
 	std::vector<BattleShip> _battleShipsA;
 	std::vector<BattleShip> _battleShipsB;
-	friend class GameManager;
-
-
 
 	/*returns errno of ship of type <type>*/
 	static int typeToErr(char type);
@@ -154,13 +151,10 @@ public:
 	/* copies ships from battleShipsA to shipsA and from battleShipsB to shipsB*/
 	void getBattleShips(std::vector<BattleShip>& ships, int playerID);
 
+	void copyPlayerBoard(Board& board, int playerID);
+
 	/*
 	* set the symbol in the attckIndexes in the board to be newSymbol
 	*/
 	void setSymbol(Coordinate& attackIndexes, char newSymbol);
-
-protected:
-	int _rows = 0; // make sure you set all protected members in the derived class.
-	int _cols = 0; // make sure you set all protected members in the derived class.
-	int _depth = 0; // make sure you set all protected members in the derived class.
 };

@@ -376,6 +376,38 @@ bool operator<(const Coordinate& c1, const Coordinate& c2) {
 	return c1.col < c2.col;
 }
 
+void Board::copyPlayerBoard(Board& board, int playerID)
+{
+	_rows = board.rows();
+	_cols = board.cols();
+	_depth = board.depth();
+
+	for (auto r = 0; r <_rows; r++)
+	{
+		for (auto c = 0; c < _cols; c++)
+		{
+			for (auto d = 0; d < _depth; d++)
+			{
+				char type = board.charAt(Coordinate(r, c, d));
+				if (! playerID && type < 'a')
+				{
+					_boardMap[Coordinate(r, c, d)] = type;
+				}
+				else 
+				{
+					if (playerID && type >= 'a')
+					{
+						_boardMap[Coordinate(r, c, d)] = type;
+					}
+					else {
+						_boardMap[Coordinate(r, c, d)] = ' ';
+					}
+				}
+			}
+		}
+	}
+}
+
 char Board::charAt(Coordinate c) const
 {
 	if (c.row > 0 && c.row < _rows && c.col > 0 && c.col < _cols && c.depth > 0 && c.depth < _depth)

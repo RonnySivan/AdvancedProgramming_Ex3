@@ -114,6 +114,56 @@ void Util::hideCursor(bool flag)
 	SetConsoleCursorInfo(out, &cursorInfo);
 }
 
+bool Util::setDefaultArgs(std::vector<std::string>& filesList, bool& quiet, int& delay, int& numOfThreads)
+{
+	std::string configFile = findSuffix(filesList, ".config", 1);
+	if (configFile.compare("") == 0) {
+		//std::cout << "Error: *.config file in missing " << boardPath << std::endl;
+		return false;
+	}
+	std::string line;
+	std::ifstream fin(configFile);
+
+	if (!fin.is_open()) {
+		//std::cout << "Error: Cannot open *.config file in " << boardPath << std::endl;
+		return false;
+	}
+	while (getline(fin, line))
+	{
+		std::vector<std::string> tokens = split(line, ' ');
+		if (tokens.size() == 1 && tokens.at(0).compare("-quiet"))
+		{
+			quiet = true;
+		}
+		if (tokens.size() > 1)
+		{
+			
+			try
+			{
+				int value = std::stoi(tokens.at(1));
+				if (tokens.at(0).compare("-delay") == 0)
+				{
+					delay = value;
+				}
+				if (tokens.at(0).compare("-numOfThreads") == 0)
+				{
+					numOfThreads = value;
+				}
+			}
+			catch (std::invalid_argument)
+			{
+				// Using default value
+			}
+			catch (std::out_of_range)
+			{
+				// Using default value
+			}
+		}
+	}
+	return true;
+}
+
+
 void Util::initMain(int argc, char* argv[], std::string& path, bool& quiet, int& delay)
 {
 	for (auto i = 1; i < argc; ++i)

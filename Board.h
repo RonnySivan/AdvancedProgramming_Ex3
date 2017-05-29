@@ -35,19 +35,30 @@ private:
 	std::vector<BattleShip> _battleShipsB;
 	friend class GameManager;
 
+
+
 	/*returns errno of ship of type <type>*/
 	static int typeToErr(char type);
 
 	/* prints all errors whose errno matches the "true" elements in <errors>*/
 	static bool printErr(bool errors[numOfBoardErrors]);
 
+	/*get board size from file*/
+	bool getBoardSize(std::string& line);
+
+	/*update all map elements corresponding to row in depth*/
+	void parseLine(std::string& line, int depth, int row);
+	
+	/* fill all cells starting from depth d row r with empty space*/
+	void fillEmptyCells(int r, int d);
+
 	/*
 	*recieves path for file containing board
 	*updates the general board and the boards for both players
 	*/
-	bool parseBoards(const std::string& boardPath,
-		char(*boardA)[boardSize][boardSize],
-		char(*boardB)[boardSize][boardSize]);
+	bool parseBoards(const std::string& boardPath);
+
+	void isEmptyNeighbors(int r, int c, int d, bool checkVert, bool checkHorz, bool checkDepth, std::pair<bool, bool> isIllegal);
 
 	/*
 	* receives a board and location of the beggining of the potential ship
@@ -56,7 +67,7 @@ private:
 	* a == true iff wrong shape of the ship
 	* b == true iff there are adjancent ship with the given one
 	*/
-	std::pair<bool, bool> isLegalSeqVert(int r, int c, std::vector<std::pair<int, int>>& locations);
+	std::pair<bool, bool> isLegalSeqVert(int r, int c, int d, std::vector<Coordinate>& locations);
 
 	/*
 	* receives a board and location of the beggining of the potential ship
@@ -65,7 +76,16 @@ private:
 	* a == true iff wrong shape of the ship
 	* b == true iff there are adjancent ship with the given one
 	*/
-	std::pair<bool, bool> isLegalSeqHorz(int r, int c, std::vector<std::pair<int, int>>& locations);
+	std::pair<bool, bool> isLegalSeqHorz(int r, int c, int d, std::vector<Coordinate>& locations);
+
+	/*
+	* receives a board and location of the beggining of the potential ship
+	* checks if the depth sequence is a legal ship
+	* returns <a, b> where
+	* a == true iff wrong shape of the ship
+	* b == true iff there are adjancent ship with the given one
+	*/
+	std::pair<bool, bool> isLegalSeqDeep(int r, int c, int d, std::vector<Coordinate>& locations);
 
 	/*
 	* finds all valid ships on board
@@ -82,8 +102,62 @@ private:
 	*/
 	bool isLegalBoard();
 
+	/*functions for mmapping Coordinate*/
+
+	std::string to_string(Coordinate c);
+
+	// this is one way to define hash function for a type
+	// see: http://en.cppreference.com/w/cpp/utility/hash
+	struct MyHash {
+		std::size_t operator()(const Coordinate& c) const {
+			return c.row * 7 + c.col * 5 + c.depth * 11;
+		}
+	};
+
+	std::ostream& operator<<(std::ostream& out, const Coordinate& c);
+
+	// required for unordered_map
+	bool operator==(const Coordinate& c1, const Coordinate& c2);
+
+	// required for map
+	bool operator<(const Coordinate& c1, const Coordinate& c2);
+
 public:
-	virtual char charAt(Coordinate c); //returns only selected players' chars
+	/* empty constructor */
+	Board();
+
+	/*destructor for Board*/
+	~Board() override;
+
+	// block copy and assignment
+	Board(const Board&) = delete;
+	Board& operator=(const Board&) = delete;
+
+	virtual char charAt(Coordinate c) const; //returns only selected players' chars
+
+	/*
+	* receives path for board
+	* fills empty ships vectors with legal ships in player's boards
+	* returns true iff board is legal
+	*/
+	bool Board::createBoards(const std::string& path);
+
+	/*
+	recieves an attack move indexes
+	and check in the game total board if some ship had been attacked
+	return the proper AttackResult (Hit, Miss, Sink)
+	and the ID of the player that it's ship eas Hitted\Sink
+	(player ID 2 for Miss )
+	*/
+	std::pair<AttackResult, int> checkAttackResult(Coordinate& attackMove);
+
+	/* copies ships from battleShipsA to shipsA and from battleShipsB to shipsB*/
+	void getBattleShips(std::vector<BattleShip>& ships, int playerID);
+
+	/*
+	* set the symbol in the attckIndexes in the board to be newSymbol
+	*/
+	void setSymbol(Coordinate& attackIndexes, char newSymbol);
 
 protected:
 	int _rows = 0; // make sure you set all protected members in the derived class.

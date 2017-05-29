@@ -69,3 +69,8 @@ bool BattleShip::isLegalShip(char type, int size) {
 	/*if (type == 'D' || type == 'd')*/
 	return (size == sizeD);
 }
+
+bool BattleShip::isLegalSymbol(char type) {
+	return (type == 'B' || type == 'b' || type == 'P' || type == 'p' ||
+		type == 'M' || type == 'm' || type == 'D' || type == 'd');
+}

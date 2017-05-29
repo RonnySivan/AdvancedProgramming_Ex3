@@ -19,7 +19,7 @@ public:
 	~BattleShip();
 
 	// block assignment c'tor but not copy c'tor
-	//BattleShip(const BattleShip&) = delete;
+	BattleShip(const BattleShip&) = default;
 	BattleShip& operator=(const BattleShip&) = delete;
 
 	// class functions
@@ -35,6 +35,9 @@ public:
 
 	/* returns true iff ship of type <type> has length <size> */
 	static bool isLegalShip(char type, int size);
+
+	/* returns true iff ship of type exists */
+	static bool isLegalSymbol(char type);
 
 private:
 	char m_letter;

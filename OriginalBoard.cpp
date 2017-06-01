@@ -1,14 +1,14 @@
-#include "Board.h"
+#include "OriginalBoard.h"
 
-Board::Board()
+OriginalBoard::OriginalBoard()
 {
 }
 
-Board::~Board()
+OriginalBoard::~OriginalBoard()
 {
 }
 
-int Board::typeToErr(char type) {
+int OriginalBoard::typeToErr(char type) {
 	if (type == 'B')
 		return boardErrorWrongSizeForShipB;
 	if (type == 'P')
@@ -27,20 +27,20 @@ int Board::typeToErr(char type) {
 	return boardErrorWrongSizeForShipd;
 }
 
-bool Board::printErr(bool errors[numOfBoardErrors]) {
-	if (errors[boardErrorWrongSizeForShipB]) std::cout << "Wrong size or shape for ship B for player A" << std::endl;
-	if (errors[boardErrorWrongSizeForShipP]) std::cout << "Wrong size or shape for ship P for player A" << std::endl;
-	if (errors[boardErrorWrongSizeForShipM]) std::cout << "Wrong size or shape for ship M for player A" << std::endl;
-	if (errors[boardErrorWrongSizeForShipD]) std::cout << "Wrong size or shape for ship D for player A" << std::endl;
-	if (errors[boardErrorWrongSizeForShipb]) std::cout << "Wrong size or shape for ship b for player B" << std::endl;
-	if (errors[boardErrorWrongSizeForShipp]) std::cout << "Wrong size or shape for ship p for player B" << std::endl;
-	if (errors[boardErrorWrongSizeForShipm]) std::cout << "Wrong size or shape for ship m for player B" << std::endl;
-	if (errors[boardErrorWrongSizeForShipd]) std::cout << "Wrong size or shape for ship d for player B" << std::endl;
-	if (errors[boardErrorTooManyA]) std::cout << "Too many ships for player A" << std::endl;
-	if (errors[boardErrorTooFewA]) std::cout << "Too few ships for player A" << std::endl;
-	if (errors[boardErrorTooManyB]) std::cout << "Too many ships for player B" << std::endl;
-	if (errors[boardErrorTooFewB]) std::cout << "Too few ships for player B" << std::endl;
-	if (errors[boardErrorAdjShips]) std::cout << "Adjacent Ships on Board" << std::endl;
+bool OriginalBoard::printErr(bool errors[numOfBoardErrors], std::string& errorStr) {
+	if (errors[boardErrorWrongSizeForShipB]) errorStr.append("Wrong size or shape for ship B for player A\n");
+	if (errors[boardErrorWrongSizeForShipP]) errorStr.append("Wrong size or shape for ship P for player A\n");
+	if (errors[boardErrorWrongSizeForShipM]) errorStr.append("Wrong size or shape for ship M for player A\n");
+	if (errors[boardErrorWrongSizeForShipD]) errorStr.append("Wrong size or shape for ship D for player A\n");
+	if (errors[boardErrorWrongSizeForShipb]) errorStr.append("Wrong size or shape for ship b for player B\n");
+	if (errors[boardErrorWrongSizeForShipp]) errorStr.append("Wrong size or shape for ship p for player B\n");
+	if (errors[boardErrorWrongSizeForShipm]) errorStr.append("Wrong size or shape for ship m for player B\n");
+	if (errors[boardErrorWrongSizeForShipd]) errorStr.append("Wrong size or shape for ship d for player B\n");
+	if (errors[boardErrorTooManyA]) errorStr.append("Too many ships for player A\n");
+	if (errors[boardErrorTooFewA]) errorStr.append("Too few ships for player A\n");
+	if (errors[boardErrorTooManyB]) errorStr.append("Too many ships for player B\n");
+	if (errors[boardErrorTooFewB]) errorStr.append("Too few ships for player B\n");
+	if (errors[boardErrorAdjShips]) errorStr.append("Adjacent Ships on Board\n");
 
 	for (auto i = 0; i < numOfBoardErrors; i++) {
 		if (errors[i]) return false;
@@ -48,7 +48,7 @@ bool Board::printErr(bool errors[numOfBoardErrors]) {
 	return true;
 }
 
-bool Board::getBoardSize(std::string& line)
+bool OriginalBoard::getBoardSize(std::string& line)
 {
 	std::vector<std::string> splitCoord = Util::split(line, 'x');
 	if (splitCoord.size() != 3)
@@ -61,39 +61,21 @@ bool Board::getBoardSize(std::string& line)
 	return (_rows > 0 && _cols > 0 && _depth > 0);
 }
 
-void Board::parseLine(std::string& line, int depth, int row)
+void OriginalBoard::parseLine(std::string& line, int depth, int row)
 {
 	auto col = 0;
 	while (col < _cols && col < line.length())
 	{
-		_boardMap[Coordinate(row, col, depth)] = (BattleShip::isLegalSymbol(line[col])) ? line[col] : ' ';
-	}
-	while (col < _cols)
-	{
-		_boardMap[Coordinate(row, col, depth)] = ' ';
-	}
-}
-
-void Board::fillEmptyCells(int r, int d)
-{
-	while (d < _depth)
-	{
-		while (r < _rows)
+		if (BattleShip::isLegalSymbol(line[col]))
 		{
-			int c = 0;
-			while (c < _cols)
-			{
-				_boardMap[Coordinate(r, c, d)] = ' ';
-				c++;
-			}
-			r++;
+			_boardMap[Coordinate(row, col, depth)] = line[col];
 		}
-		r = 0;
-		d++;
 	}
 }
 
-bool Board::parseBoards(const std::string& boardPath) {
+
+
+bool OriginalBoard::parseBoards(const std::string& boardPath) {
 	std::string line;
 	std::ifstream fin(boardPath);
 
@@ -115,8 +97,8 @@ bool Board::parseBoards(const std::string& boardPath) {
 		return false;
 	}
 
-	int d = 0, r = 0;
-	bool seenEmptyRow = false;
+	auto d = 0, r = 0;
+	auto seenEmptyRow = false;
 	while (d < _depth && getline(fin, line))
 	{
 		if (seenEmptyRow)
@@ -135,15 +117,14 @@ bool Board::parseBoards(const std::string& boardPath) {
 			seenEmptyRow = line.compare("\n") || line.compare("\r");
 		}
 	}
-	fillEmptyCells(r, d);
 	fin.close;
 	return true;
 }
 
-void Board::isEmptyNeighbors(int r, int c, int d, bool checkVert, bool checkHorz, bool checkDepth, std::pair<bool, bool> isIllegal)
+void OriginalBoard::isEmptyNeighbors(int r, int c, int d, bool checkVert, bool checkHorz, bool checkDepth, std::pair<bool, bool> isIllegal) const
 {
-	char cur = _boardMap.at(Coordinate(r, c, d));
-	for (int i = 0; i < 2; i++)
+	char cur = charAt(Coordinate(r, c, d));
+	for (auto i = 0; i < 2; i++)
 	{
 		bool check = false;
 		char neighbor = ' ';
@@ -152,13 +133,13 @@ void Board::isEmptyNeighbors(int r, int c, int d, bool checkVert, bool checkHorz
 		case 0:
 			if ((r > 0 && checkVert) || (c > 0 && checkHorz) || (d > 0 && checkDepth))
 			{
-				neighbor = _boardMap.at(Coordinate(r - 1 * checkVert, c - checkHorz, d - checkDepth));
+				neighbor = charAt(Coordinate(r - 1 * checkVert, c - checkHorz, d - checkDepth));
 				check = true;
 			}
 		default:
 			if ((r < _rows && checkVert) || (c < _cols && checkHorz) || (d < _depth && checkDepth))
 			{
-				neighbor = _boardMap.at(Coordinate(r + 1 * checkVert, c + checkHorz, d + checkDepth));
+				neighbor = charAt(Coordinate(r + 1 * checkVert, c + checkHorz, d + checkDepth));
 				check = true;
 			}
 		}
@@ -170,17 +151,17 @@ void Board::isEmptyNeighbors(int r, int c, int d, bool checkVert, bool checkHorz
 	}
 }
 
-std::pair<bool, bool> Board::isLegalSeqHorz(int r, int c, int d, std::vector<Coordinate>& locations)
+std::pair<bool, bool> OriginalBoard::isLegalSeqHorz(int r, int c, int d, std::vector<Coordinate>& locations) const
 {
 	auto len = 0;
-	char type = _boardMap.at(Coordinate(r, c, d));
+	char type = charAt(Coordinate(r, c, d));
 	std::pair<bool, bool> illegal(false, false); //(adjucent ships, legal length of type)
 	for (auto k = c; k < _cols; k++)
 	{
-		char cur = _boardMap.at(Coordinate(r , k, d));
-		if (cur == ' ') break;
-		if (cur != type) {
-			illegal.second = true;
+		char cur = charAt(Coordinate(r , k, d));
+		if (cur != type)
+		{
+			illegal.second = illegal.second || (cur != ' ');
 			break;
 		}
 		isEmptyNeighbors(r, k, d, true, false, false, illegal);
@@ -194,17 +175,17 @@ std::pair<bool, bool> Board::isLegalSeqHorz(int r, int c, int d, std::vector<Coo
 	return illegal;
 }
 
-std::pair<bool, bool> Board::isLegalSeqVert(int r, int c, int d, std::vector<Coordinate>& locations)
+std::pair<bool, bool> OriginalBoard::isLegalSeqVert(int r, int c, int d, std::vector<Coordinate>& locations) const
 {
 	auto len = 0;
-	char type = _boardMap.at(Coordinate(r, c, d));
+	char type = charAt(Coordinate(r, c, d));
 	std::pair<bool, bool> illegal(false, false); //(adjucent ships, legal length of type)
 	for (auto k = r; k < _rows; k++)
 	{
-		char cur = _boardMap.at(Coordinate(k, c, d));
-		if (cur == ' ') break;
-		if (cur != type) {
-			illegal.second = true;
+		char cur = charAt(Coordinate(k, c, d));
+		if (cur != type)
+		{
+			illegal.second = illegal.second || (cur != ' ');
 			break;
 		}
 		isEmptyNeighbors(k, c, d, false, true, false, illegal);
@@ -218,17 +199,17 @@ std::pair<bool, bool> Board::isLegalSeqVert(int r, int c, int d, std::vector<Coo
 	return illegal;
 }
 
-std::pair<bool, bool> Board::isLegalSeqDeep(int r, int c, int d, std::vector<Coordinate>& locations)
+std::pair<bool, bool> OriginalBoard::isLegalSeqDeep(int r, int c, int d, std::vector<Coordinate>& locations) const
 {
 	auto len = 0;
-	char type = _boardMap.at(Coordinate(r, c, d));
+	char type =charAt(Coordinate(r, c, d));
 	std::pair<bool, bool> illegal(false, false); //(adjucent ships, legal length of type)
 	for (auto k = d; k < _depth; k++)
 	{
-		char cur = _boardMap.at(Coordinate(r, c, k));
-		if (cur == ' ') break;
-		if (cur != type) {
-			illegal.second = true;
+		char cur = charAt(Coordinate(r, c, k));
+		if (cur != type)
+		{
+			illegal.second = illegal.second || (cur != ' ');
 			break;
 		}
 		isEmptyNeighbors(r, c, k, true, false, false, illegal);
@@ -242,7 +223,7 @@ std::pair<bool, bool> Board::isLegalSeqDeep(int r, int c, int d, std::vector<Coo
 	return illegal;
 }
 
-void Board::findShips(bool errorsInBoard[numOfBoardErrors], std::vector<BattleShip>& ships)
+void OriginalBoard::findShips(bool errorsInBoard[numOfBoardErrors], std::vector<BattleShip>& ships)
 {
 	for (auto k = 0; k < _depth; k++)
 	{
@@ -250,13 +231,14 @@ void Board::findShips(bool errorsInBoard[numOfBoardErrors], std::vector<BattleSh
 		{
 			for (auto j = 0; j < _cols; j++)
 			{
-				char type = _boardMap.at(Coordinate(i, j, k));
+				char type = charAt(Coordinate(i, j, k));
+				if (type == ' ') continue;
 				/*enter <if> only if cell is not empty and
 				*is not part of a sequence that was already checked(from above or left or within)*/
 				if (type != ' ' && 
-					(i == 0 || _boardMap.at(Coordinate(i - 1, j, k)) != type) &&
-					(j == 0 || _boardMap.at(Coordinate(i, j - 1, k)) != type) &&
-					(k == 0 || _boardMap.at(Coordinate(i, j, k - 1)) != type))
+					(i == 0 || charAt(Coordinate(i - 1, j, k)) != type) &&
+					(j == 0 || charAt(Coordinate(i, j - 1, k)) != type) &&
+					(k == 0 || charAt(Coordinate(i, j, k - 1)) != type))
 				{
 					std::vector<Coordinate> locV, locH, locD;
 					std::pair<bool, bool> vert = isLegalSeqVert(i, j, k, locV);
@@ -285,14 +267,14 @@ void Board::findShips(bool errorsInBoard[numOfBoardErrors], std::vector<BattleSh
 						ships.push_back(BattleShip(type, locD));
 						continue;
 					}
-					errorsInBoard[Board::typeToErr(type)] = true;
+					errorsInBoard[OriginalBoard::typeToErr(type)] = true;
 				}
 			}
 		}
 	}
 }
 
-bool Board::isLegalBoard() {
+bool OriginalBoard::isLegalBoard(std::string& errorsMsg) {
 	bool errors[numOfBoardErrors] = { false };
 	std::vector<BattleShip> ships;
 	findShips(errors, ships);
@@ -308,20 +290,20 @@ bool Board::isLegalBoard() {
 	if (_battleShipsA.size() > numOfPlayerShips) errors[boardErrorTooManyA] = true;
 	if (_battleShipsB.size() < numOfPlayerShips) errors[boardErrorTooFewB] = true;
 	if (_battleShipsB.size() > numOfPlayerShips) errors[boardErrorTooManyB] = true;
-	return printErr(errors);
+	return printErr(errors, errorsMsg);
 }
 
-bool Board::createBoards(const std::string& path, std::string& errors) {
+bool OriginalBoard::createBoards(const std::string& path, std::string& errorsStr) {
 
 	if (! parseBoards(path))
 		return false;
 
-	return isLegalBoard();
+	return isLegalBoard(errorsStr);
 }
 
-std::pair<AttackResult, int> Board::checkAttackResult(Coordinate& attackMove) {
+std::pair<AttackResult, int> OriginalBoard::checkAttackResult(Coordinate& attackMove) const{
 
-	char symbol = _boardMap.at(attackMove);
+	char symbol = charAt(attackMove);
 
 	if (symbol == ' ' || symbol == 'X' || symbol == 'x')
 		return std::make_pair(AttackResult::Miss, 2); // attacked the sea OR a sinked battleship. 
@@ -341,57 +323,29 @@ std::pair<AttackResult, int> Board::checkAttackResult(Coordinate& attackMove) {
 	return std::make_pair(AttackResult::Miss, 2);
 }
 
-void Board::getBattleShips(std::vector<BattleShip>& ships, int playerID)
+void OriginalBoard::getBattleShips(std::vector<BattleShip>& ships, int playerID)
 {
 	std::vector<BattleShip> fromShips = (playerID == 0) ? _battleShipsA : _battleShipsB;
 	for (std::vector<BattleShip>::iterator itr = fromShips.begin(); itr != fromShips.end(); ++itr)
 		ships.push_back(*itr);
 }
 
-void Board::setSymbol(Coordinate& attackIndexes, char newSymbol) {
+void OriginalBoard::setSymbol(Coordinate& attackIndexes, char newSymbol) {
 	_boardMap[attackIndexes] = newSymbol;
 }
 
 
-void Board::copyPlayerBoard(Board& board, int playerID)
-{
-	_rows = board.rows();
-	_cols = board.cols();
-	_depth = board.depth();
-
-	for (auto r = 0; r <_rows; r++)
-	{
-		for (auto c = 0; c < _cols; c++)
-		{
-			for (auto d = 0; d < _depth; d++)
-			{
-				char type = board.charAt(Coordinate(r, c, d));
-				if (! playerID && type < 'a')
-				{
-					_boardMap[Coordinate(r, c, d)] = type;
-				}
-				else 
-				{
-					if (playerID && type >= 'a')
-					{
-						_boardMap[Coordinate(r, c, d)] = type;
-					}
-					else {
-						_boardMap[Coordinate(r, c, d)] = ' ';
-					}
-				}
-			}
-		}
-	}
-}
-
-char Board::charAt(Coordinate c) const
+char OriginalBoard::charAt(Coordinate c) const
 {
 	if (c.row > 0 && c.row < _rows && c.col > 0 && c.col < _cols && c.depth > 0 && c.depth < _depth)
 	{
-		return _boardMap.at(c);
+		std::map<Coordinate, char>::const_iterator cur = _boardMap.find(c);
+		if (cur != _boardMap.end())
+		{
+			return cur->second;
+		}
 	}
-	return '\0';
+	return ' ';
 }
 
 

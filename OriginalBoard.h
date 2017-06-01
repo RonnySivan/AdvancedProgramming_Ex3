@@ -7,7 +7,6 @@
 #include <vector>
 #include <map>
 
-#define boardSize 10
 
 #define boardErrorWrongSizeForShipB 0
 #define boardErrorWrongSizeForShipP 1
@@ -27,7 +26,7 @@
 
 #define numOfPlayerShips 5
 
-class Board : public BoardData
+class OriginalBoard : public BoardData
 {
 private:
 	std::map<Coordinate, char> _boardMap;
@@ -38,16 +37,13 @@ private:
 	static int typeToErr(char type);
 
 	/* prints all errors whose errno matches the "true" elements in <errors>*/
-	static bool printErr(bool errors[numOfBoardErrors]);
+	static bool printErr(bool errors[numOfBoardErrors], std::string& errorStr);
 
 	/*get board size from file*/
 	bool getBoardSize(std::string& line);
 
 	/*update all map elements corresponding to row in depth*/
 	void parseLine(std::string& line, int depth, int row);
-	
-	/* fill all cells starting from depth d row r with empty space*/
-	void fillEmptyCells(int r, int d);
 
 	/*
 	*recieves path for file containing board
@@ -55,7 +51,8 @@ private:
 	*/
 	bool parseBoards(const std::string& boardPath);
 
-	void isEmptyNeighbors(int r, int c, int d, bool checkVert, bool checkHorz, bool checkDepth, std::pair<bool, bool> isIllegal);
+	void isEmptyNeighbors(int r, int c, int d, bool checkVert, bool checkHorz, bool checkDepth, 
+		std::pair<bool, bool> isIllegal) const;
 
 	/*
 	* receives a board and location of the beggining of the potential ship
@@ -64,7 +61,7 @@ private:
 	* a == true iff wrong shape of the ship
 	* b == true iff there are adjancent ship with the given one
 	*/
-	std::pair<bool, bool> isLegalSeqVert(int r, int c, int d, std::vector<Coordinate>& locations);
+	std::pair<bool, bool> isLegalSeqVert(int r, int c, int d, std::vector<Coordinate>& locations) const;
 
 	/*
 	* receives a board and location of the beggining of the potential ship
@@ -73,7 +70,7 @@ private:
 	* a == true iff wrong shape of the ship
 	* b == true iff there are adjancent ship with the given one
 	*/
-	std::pair<bool, bool> isLegalSeqHorz(int r, int c, int d, std::vector<Coordinate>& locations);
+	std::pair<bool, bool> isLegalSeqHorz(int r, int c, int d, std::vector<Coordinate>& locations) const;
 
 	/*
 	* receives a board and location of the beggining of the potential ship
@@ -82,13 +79,11 @@ private:
 	* a == true iff wrong shape of the ship
 	* b == true iff there are adjancent ship with the given one
 	*/
-	std::pair<bool, bool> isLegalSeqDeep(int r, int c, int d, std::vector<Coordinate>& locations);
+	std::pair<bool, bool> isLegalSeqDeep(int r, int c, int d, std::vector<Coordinate>& locations) const;
 
 	/*
 	* finds all valid ships on board
-	*
 	* saves to <errorsInBoard? all errors found on board
-	*
 	*/
 	void findShips(bool errorsInBoard[numOfBoardErrors], std::vector<BattleShip>& ships);
 
@@ -97,20 +92,20 @@ private:
 	* returns the result from <printErr> with all the errors found till now
 	* meaning, returns true iff board is legal
 	*/
-	bool isLegalBoard();
+	bool isLegalBoard(std::string& errorStr);
 
 public:
 	/* empty constructor */
-	Board();
+	OriginalBoard();
 
-	/*destructor for Board*/
-	~Board() override;
+	/*destructor for OriginalBoard*/
+	~OriginalBoard() override;
 
 	// block copy and assignment
-	Board(const Board&) = delete;
-	Board& operator=(const Board&) = delete;
+	OriginalBoard(const OriginalBoard&) = delete;
+	OriginalBoard& operator=(const OriginalBoard&) = delete;
 
-	virtual char charAt(Coordinate c) const override; //returns only selected players' chars
+	char charAt(Coordinate c) const override; 
 
 	/*
 	* receives path for board
@@ -118,7 +113,7 @@ public:
 	* writes all errors found to <errors>
 	* returns true iff board is legal
 	*/
-	bool Board::createBoards(const std::string& path, std::string& errors);
+	bool OriginalBoard::createBoards(const std::string& path, std::string& errorsStr);
 
 	/*
 	recieves an attack move indexes
@@ -127,12 +122,10 @@ public:
 	and the ID of the player that it's ship eas Hitted\Sink
 	(player ID 2 for Miss )
 	*/
-	std::pair<AttackResult, int> checkAttackResult(Coordinate& attackMove);
+	std::pair<AttackResult, int> checkAttackResult(Coordinate& attackMove) const;
 
 	/* copies ships from battleShipsA to shipsA and from battleShipsB to shipsB*/
 	void getBattleShips(std::vector<BattleShip>& ships, int playerID);
-
-	void copyPlayerBoard(Board& board, int playerID);
 
 	/*
 	* set the symbol in the attckIndexes in the board to be newSymbol

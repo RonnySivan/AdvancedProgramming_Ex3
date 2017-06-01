@@ -6,6 +6,7 @@
 #include <sstream>
 #include <windows.h>
 #include <algorithm>
+#include "IBattleshipGameAlgo.h"
 
 // for printing:
 #define A_COLOR	0xb0
@@ -30,6 +31,13 @@ public:
 	* return the first file name with the given suffix, or "" if there isn't one
 	*/
 	static std::string findSuffix(std::vector<std::string>& filesList, std::string suffix, int num);
+
+	/*
+	* suffix - suffix a file we are looking for
+	* filesList - a vector where we'll hold all the files in the given folder
+	* foundFiles - an empty vector where we'll keep all file names with given suffix
+	*/
+	void findAllFilesWithSuffix(std::vector<std::string>& filesList, std::vector<std::string> foundFiles, std::string suffix);
 
 	/*
 	* returns absolite path for the relative path given
@@ -73,5 +81,25 @@ public:
 	* initializes program veriables
 	*/
 	static void initMain(int argc, char* argv[], std::string& path, bool& quiet, int& delay);
+
+	/*functions for mmapping Coordinate*/
+
+	std::string to_string(Coordinate c);
+
+	// this is one way to define hash function for a type
+	// see: http://en.cppreference.com/w/cpp/utility/hash
+	struct MyHash {
+		std::size_t operator()(const Coordinate& c) const {
+			return c.row * 7 + c.col * 5 + c.depth * 11;
+		}
+	};
+
+	std::ostream& operator<<(std::ostream& out, const Coordinate& c);
+
+	// required for unordered_map
+	bool operator==(const Coordinate& c1, const Coordinate& c2);
+
+	// required for map
+	bool operator<(const Coordinate& c1, const Coordinate& c2);
 
 };

@@ -57,6 +57,16 @@ std::string Util::findSuffix(std::vector<std::string>& filesList, std::string su
 	return "";
 }
 
+void Util::findAllFilesWithSuffix(std::vector<std::string>& filesList, std::vector<std::string> foundFiles, std::string suffix)
+{
+	for (std::vector<std::string>::iterator itr = filesList.begin(); itr != filesList.end(); ++itr)
+	{
+		if (Util::endsWith(*itr, suffix)) {
+			foundFiles.push_back(*itr);
+		}
+	}
+}
+
 //checks if value ends with ending
 bool Util::endsWith(std::string& value, std::string& ending)
 {
@@ -163,6 +173,30 @@ bool Util::setDefaultArgs(std::vector<std::string>& filesList, bool& quiet, int&
 	return true;
 }
 
+
+std::string to_string(Coordinate c) {
+	return "(" + std::to_string(c.col) + ", " + std::to_string(c.row) + ", " + std::to_string(c.depth) + ")";
+}
+
+std::ostream& operator<<(std::ostream& out, const Coordinate& c) {
+	return out << to_string(c);
+}
+
+// required for unordered_map
+bool operator==(const Coordinate& c1, const Coordinate& c2) {
+	return c1.col == c2.col && c1.row == c2.row && c1.depth == c2.depth;
+}
+
+// required for map
+bool operator<(const Coordinate& c1, const Coordinate& c2) {
+	if (c1.col == c2.col) {
+		if (c1.row == c2.row) {
+			return c1.depth < c2.depth;
+		}
+		return c1.row < c2.row;
+	}
+	return c1.col < c2.col;
+}
 
 void Util::initMain(int argc, char* argv[], std::string& path, bool& quiet, int& delay)
 {

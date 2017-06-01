@@ -311,7 +311,7 @@ bool Board::isLegalBoard() {
 	return printErr(errors);
 }
 
-bool Board::createBoards(const std::string& path) {
+bool Board::createBoards(const std::string& path, std::string& errors) {
 
 	if (! parseBoards(path))
 		return false;
@@ -352,29 +352,6 @@ void Board::setSymbol(Coordinate& attackIndexes, char newSymbol) {
 	_boardMap[attackIndexes] = newSymbol;
 }
 
-std::string to_string(Coordinate c) {
-	return "(" + std::to_string(c.col) + ", " + std::to_string(c.row) + ", " + std::to_string(c.depth) + ")";
-}
-
-std::ostream& operator<<(std::ostream& out, const Coordinate& c) {
-	return out << to_string(c);
-}
-
-// required for unordered_map
-bool operator==(const Coordinate& c1, const Coordinate& c2) {
-	return c1.col == c2.col && c1.row == c2.row && c1.depth == c2.depth;
-}
-
-// required for map
-bool operator<(const Coordinate& c1, const Coordinate& c2) {
-	if (c1.col == c2.col) {
-		if (c1.row == c2.row) {
-			return c1.depth < c2.depth;
-		}
-		return c1.row < c2.row;
-	}
-	return c1.col < c2.col;
-}
 
 void Board::copyPlayerBoard(Board& board, int playerID)
 {

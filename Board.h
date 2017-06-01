@@ -99,26 +99,6 @@ private:
 	*/
 	bool isLegalBoard();
 
-	/*functions for mmapping Coordinate*/
-
-	std::string to_string(Coordinate c);
-
-	// this is one way to define hash function for a type
-	// see: http://en.cppreference.com/w/cpp/utility/hash
-	struct MyHash {
-		std::size_t operator()(const Coordinate& c) const {
-			return c.row * 7 + c.col * 5 + c.depth * 11;
-		}
-	};
-
-	std::ostream& operator<<(std::ostream& out, const Coordinate& c);
-
-	// required for unordered_map
-	bool operator==(const Coordinate& c1, const Coordinate& c2);
-
-	// required for map
-	bool operator<(const Coordinate& c1, const Coordinate& c2);
-
 public:
 	/* empty constructor */
 	Board();
@@ -130,14 +110,15 @@ public:
 	Board(const Board&) = delete;
 	Board& operator=(const Board&) = delete;
 
-	virtual char charAt(Coordinate c) const; //returns only selected players' chars
+	virtual char charAt(Coordinate c) const override; //returns only selected players' chars
 
 	/*
 	* receives path for board
 	* fills empty ships vectors with legal ships in player's boards
+	* writes all errors found to <errors>
 	* returns true iff board is legal
 	*/
-	bool Board::createBoards(const std::string& path);
+	bool Board::createBoards(const std::string& path, std::string& errors);
 
 	/*
 	recieves an attack move indexes

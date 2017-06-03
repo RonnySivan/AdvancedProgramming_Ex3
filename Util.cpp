@@ -124,7 +124,7 @@ void Util::hideCursor(bool flag)
 	SetConsoleCursorInfo(out, &cursorInfo);
 }
 
-bool Util::setDefaultArgs(std::vector<std::string>& filesList, bool& quiet, int& delay, int& numOfThreads)
+bool Util::setDefaultArgs(std::vector<std::string>& filesList, int& numOfThreads)
 {
 	std::string configFile = findSuffix(filesList, ".config", 1);
 	if (configFile.compare("") == 0) {
@@ -141,36 +141,30 @@ bool Util::setDefaultArgs(std::vector<std::string>& filesList, bool& quiet, int&
 	while (getline(fin, line))
 	{
 		std::vector<std::string> tokens = split(line, ' ');
-		if (tokens.size() == 1 && tokens.at(0).compare("-quiet"))
+		if (tokens.size() < 2)
 		{
-			quiet = true;
+			//std::cout << "Error: configuration file doesn't contain a default argument for number of threads " << boardPath << std::endl;
+			return false;
 		}
-		if (tokens.size() > 1)
+		try
 		{
-			
-			try
+			int value = std::stoi(tokens.at(1));
+			if (tokens.at(0).compare("-threads") == 0)
 			{
-				int value = std::stoi(tokens.at(1));
-				if (tokens.at(0).compare("-delay") == 0)
-				{
-					delay = value;
-				}
-				if (tokens.at(0).compare("-numOfThreads") == 0)
-				{
-					numOfThreads = value;
-				}
+				numOfThreads = value;
+				return true;
 			}
-			catch (std::invalid_argument)
-			{
-				// Using default value
-			}
-			catch (std::out_of_range)
-			{
-				// Using default value
-			}
+		}
+		catch (std::invalid_argument)
+		{
+			// Using default value
+		}
+		catch (std::out_of_range)
+		{
+			// Using default value
 		}
 	}
-	return true;
+	return false;
 }
 
 
@@ -234,4 +228,5 @@ void Util::initMain(int argc, char* argv[], std::string& path, bool& quiet, int&
 	path.erase(std::remove(path.begin(), path.end(), ' '), path.end());
 	path = Util::findAbsPath(path.c_str());
 }
+
 

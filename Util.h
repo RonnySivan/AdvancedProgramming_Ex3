@@ -75,7 +75,7 @@ public:
 	 * gets the names of all the files in the path given and extracts the default parameters from config file
 	 * returns true iff succedded
 	 */
-	bool setDefaultArgs(std::vector<std::string>& filesList, bool& quiet, int& delay, int& numOfThreads);
+	bool setDefaultArgs(std::vector<std::string>& filesList, int& numOfThreads);
 
 	/**
 	* initializes program veriables

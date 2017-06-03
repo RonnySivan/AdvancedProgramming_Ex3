@@ -1,12 +1,10 @@
 #include "OriginalBoard.h"
 
-OriginalBoard::OriginalBoard()
-{
-}
+OriginalBoard::OriginalBoard() { }
 
-OriginalBoard::~OriginalBoard()
-{
-}
+
+OriginalBoard::~OriginalBoard() { }
+
 
 int OriginalBoard::typeToErr(char type) {
 	if (type == 'B')
@@ -26,6 +24,7 @@ int OriginalBoard::typeToErr(char type) {
 	//if (type == 'd')
 	return boardErrorWrongSizeForShipd;
 }
+
 
 bool OriginalBoard::printErr(bool errors[numOfBoardErrors], std::string& errorStr) {
 	if (errors[boardErrorWrongSizeForShipB]) errorStr.append("Wrong size or shape for ship B for player A\n");
@@ -48,6 +47,7 @@ bool OriginalBoard::printErr(bool errors[numOfBoardErrors], std::string& errorSt
 	return true;
 }
 
+
 bool OriginalBoard::getBoardSize(std::string& line)
 {
 	std::vector<std::string> splitCoord = Util::split(line, 'x');
@@ -61,10 +61,11 @@ bool OriginalBoard::getBoardSize(std::string& line)
 	return (_rows > 0 && _cols > 0 && _depth > 0);
 }
 
+
 void OriginalBoard::parseLine(std::string& line, int depth, int row)
 {
-	auto col = 0;
-	while (col < _cols && col < line.length())
+	auto col = 1;
+	while (col <= _cols && col < line.length())
 	{
 		if (BattleShip::isLegalSymbol(line[col]))
 		{
@@ -72,7 +73,6 @@ void OriginalBoard::parseLine(std::string& line, int depth, int row)
 		}
 	}
 }
-
 
 
 bool OriginalBoard::parseBoards(const std::string& boardPath) {
@@ -97,18 +97,18 @@ bool OriginalBoard::parseBoards(const std::string& boardPath) {
 		return false;
 	}
 
-	auto d = 0, r = 0;
+	auto d = 1, r = 1;
 	auto seenEmptyRow = false;
-	while (d < _depth && getline(fin, line))
+	while (d <= _depth && getline(fin, line))
 	{
 		if (seenEmptyRow)
 		{
 			parseLine(line, d, r);
 			r++;
-			if (r == _rows)
+			if (r > _rows)
 			{
 				d++;
-				r = 0;
+				r = 1;
 				seenEmptyRow = false;
 			}
 		}
@@ -117,9 +117,9 @@ bool OriginalBoard::parseBoards(const std::string& boardPath) {
 			seenEmptyRow = line.compare("\n") || line.compare("\r");
 		}
 	}
-	fin.close;
 	return true;
 }
+
 
 void OriginalBoard::isEmptyNeighbors(int r, int c, int d, bool checkVert, bool checkHorz, bool checkDepth, std::pair<bool, bool> isIllegal) const
 {
@@ -151,6 +151,7 @@ void OriginalBoard::isEmptyNeighbors(int r, int c, int d, bool checkVert, bool c
 	}
 }
 
+
 std::pair<bool, bool> OriginalBoard::isLegalSeqHorz(int r, int c, int d, std::vector<Coordinate>& locations) const
 {
 	auto len = 0;
@@ -174,6 +175,7 @@ std::pair<bool, bool> OriginalBoard::isLegalSeqHorz(int r, int c, int d, std::ve
 
 	return illegal;
 }
+
 
 std::pair<bool, bool> OriginalBoard::isLegalSeqVert(int r, int c, int d, std::vector<Coordinate>& locations) const
 {
@@ -199,6 +201,7 @@ std::pair<bool, bool> OriginalBoard::isLegalSeqVert(int r, int c, int d, std::ve
 	return illegal;
 }
 
+
 std::pair<bool, bool> OriginalBoard::isLegalSeqDeep(int r, int c, int d, std::vector<Coordinate>& locations) const
 {
 	auto len = 0;
@@ -222,6 +225,7 @@ std::pair<bool, bool> OriginalBoard::isLegalSeqDeep(int r, int c, int d, std::ve
 
 	return illegal;
 }
+
 
 void OriginalBoard::findShips(bool errorsInBoard[numOfBoardErrors], std::vector<BattleShip>& ships)
 {
@@ -274,6 +278,7 @@ void OriginalBoard::findShips(bool errorsInBoard[numOfBoardErrors], std::vector<
 	}
 }
 
+
 bool OriginalBoard::isLegalBoard(std::string& errorsMsg) {
 	bool errors[numOfBoardErrors] = { false };
 	std::vector<BattleShip> ships;
@@ -293,6 +298,7 @@ bool OriginalBoard::isLegalBoard(std::string& errorsMsg) {
 	return printErr(errors, errorsMsg);
 }
 
+
 bool OriginalBoard::createBoards(const std::string& path, std::string& errorsStr) {
 
 	if (! parseBoards(path))
@@ -301,37 +307,12 @@ bool OriginalBoard::createBoards(const std::string& path, std::string& errorsStr
 	return isLegalBoard(errorsStr);
 }
 
-std::pair<AttackResult, int> OriginalBoard::checkAttackResult(Coordinate& attackMove) const{
-
-	char symbol = charAt(attackMove);
-
-	if (symbol == ' ' || symbol == 'X' || symbol == 'x')
-		return std::make_pair(AttackResult::Miss, 2); // attacked the sea OR a sinked battleship. 
-
-	if (symbol == 'h' || symbol == 'H')
-		return std::make_pair(AttackResult::Hit, 2);; // attack allready hit battleship (did not sink yet)
-
-	if (symbol == 'B' || symbol == 'P' || symbol == 'M' || symbol == 'D') {
-		// B get a HIT
-		return std::make_pair(AttackResult::Hit, 0);
-	}
-	if (symbol == 'b' || symbol == 'p' || symbol == 'm' || symbol == 'd') {
-		// A get a Hit
-		return std::make_pair(AttackResult::Hit, 1);
-	}
-	//shouldn't reach this line
-	return std::make_pair(AttackResult::Miss, 2);
-}
 
 void OriginalBoard::getBattleShips(std::vector<BattleShip>& ships, int playerID)
 {
 	std::vector<BattleShip> fromShips = (playerID == 0) ? _battleShipsA : _battleShipsB;
 	for (std::vector<BattleShip>::iterator itr = fromShips.begin(); itr != fromShips.end(); ++itr)
 		ships.push_back(*itr);
-}
-
-void OriginalBoard::setSymbol(Coordinate& attackIndexes, char newSymbol) {
-	_boardMap[attackIndexes] = newSymbol;
 }
 
 

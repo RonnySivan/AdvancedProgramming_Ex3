@@ -29,6 +29,9 @@ BattleShip::BattleShip(char letter, std::vector<Coordinate>& locations)
 	case ('d'): m_score = scoreD;
 		break;
 	case ('D'): m_score = scoreD;
+		break;
+	default:
+		m_score = 0;
 	}
 }
 
@@ -38,7 +41,7 @@ BattleShip::~BattleShip() {}
 AttackResult BattleShip::shipAttackResult(Coordinate attackMove)
 {
 
-	for (auto i = 0; i < m_locations.size(); i++)
+	for (int i = 0; i < (signed) m_locations.size(); i++)
 	{
 		if ((m_locations[i].row == attackMove.row) && 
 			(m_locations[i].col == attackMove.col) &&

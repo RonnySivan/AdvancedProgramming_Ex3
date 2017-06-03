@@ -64,8 +64,8 @@ bool OriginalBoard::getBoardSize(std::string& line)
 
 void OriginalBoard::parseLine(std::string& line, int depth, int row)
 {
-	auto col = 1;
-	while (col <= _cols && col < line.length())
+	int col = 1;
+	while (col <= _cols && col < (signed) line.length())
 	{
 		if (BattleShip::isLegalSymbol(line[col]))
 		{

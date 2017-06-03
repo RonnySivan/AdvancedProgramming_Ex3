@@ -37,7 +37,7 @@ public:
 	* filesList - a vector where we'll hold all the files in the given folder
 	* foundFiles - an empty vector where we'll keep all file names with given suffix
 	*/
-	void findAllFilesWithSuffix(std::vector<std::string>& filesList, std::vector<std::string> foundFiles, std::string suffix);
+	static void findAllFilesWithSuffix(std::vector<std::string>& filesList, std::vector<std::string> foundFiles, std::string suffix);
 
 	/*
 	* returns absolite path for the relative path given
@@ -66,16 +66,12 @@ public:
 	*/
 	static bool existsFiles(std::string& fileBoard, std::string& fileDllA, std::string& fileDllB, const std::string& path, bool isLegalBoard);
 
-	/*
-	* hides the cursor in console
-	*/
-	static void hideCursor(bool flag);
 
 	/*
 	 * gets the names of all the files in the path given and extracts the default parameters from config file
 	 * returns true iff succedded
 	 */
-	bool setDefaultArgs(std::vector<std::string>& filesList, int& numOfThreads);
+	static bool setDefaultArgs(std::vector<std::string>& filesList, int& numOfThreads);
 
 	/**
 	* initializes program veriables

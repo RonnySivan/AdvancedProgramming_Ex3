@@ -2,14 +2,15 @@
 
 #include "OriginalBoard.h"
 
+
 class PlayerBoard : public BoardData
 {
 	int _playerID;
-	OriginalBoard& _originalBoard;
+	OriginalBoard* _originalBoard;
 
 public:
 	PlayerBoard(int playerID, OriginalBoard& originalBoard);
-	~PlayerBoard() = default;
+	~PlayerBoard();
 	// block copy and assignment
 	PlayerBoard(const PlayerBoard&) = delete;
 	PlayerBoard& operator=(const PlayerBoard&) = delete;

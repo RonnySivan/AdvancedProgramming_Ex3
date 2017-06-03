@@ -4,7 +4,7 @@
 
 class GameBoard : public BoardData
 {
-	OriginalBoard& _originalBoard;
+	OriginalBoard* _originalBoard;
 	std::map<Coordinate, char> _updatedBoard;
 
 

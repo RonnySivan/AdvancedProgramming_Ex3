@@ -113,17 +113,6 @@ bool Util::existsFiles(std::string& fileBoard, std::string& fileDllA, std::strin
 	return validFiles && isLegalBoard;
 }
 
-void Util::hideCursor(bool flag)
-{
-	HANDLE out = GetStdHandle(STD_OUTPUT_HANDLE);
-
-	CONSOLE_CURSOR_INFO     cursorInfo;
-
-	GetConsoleCursorInfo(out, &cursorInfo);
-	cursorInfo.bVisible = !flag; // set the cursor visibility
-	SetConsoleCursorInfo(out, &cursorInfo);
-}
-
 bool Util::setDefaultArgs(std::vector<std::string>& filesList, int& numOfThreads)
 {
 	std::string configFile = findSuffix(filesList, ".config", 1);
@@ -169,14 +158,6 @@ bool Util::setDefaultArgs(std::vector<std::string>& filesList, int& numOfThreads
 
 /*functions for mmapping Coordinate*/
 
-// this is one way to define hash function for a type
-// see: http://en.cppreference.com/w/cpp/utility/hash
-struct MyHash {
-	std::size_t operator()(const Coordinate& c) const {
-		return c.row * 7 + c.col * 5 + c.depth * 11;
-	}
-};
-
 
 std::string to_string(Coordinate c) {
 	return "(" + std::to_string(c.col) + ", " + std::to_string(c.row) + ", " + std::to_string(c.depth) + ")";
@@ -201,6 +182,14 @@ bool operator<(const Coordinate& c1, const Coordinate& c2) {
 	}
 	return c1.col < c2.col;
 }
+
+// this is one way to define hash function for a type
+// see: http://en.cppreference.com/w/cpp/utility/hash
+struct MyHash {
+	std::size_t operator()(const Coordinate& c) const {
+		return c.row * 7 + c.col * 5 + c.depth * 11;
+	}
+};
 
 void Util::initMain(int argc, char* argv[], std::string& path, bool& quiet, int& delay)
 {

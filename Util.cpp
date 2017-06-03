@@ -167,6 +167,16 @@ bool Util::setDefaultArgs(std::vector<std::string>& filesList, int& numOfThreads
 	return false;
 }
 
+/*functions for mmapping Coordinate*/
+
+// this is one way to define hash function for a type
+// see: http://en.cppreference.com/w/cpp/utility/hash
+struct MyHash {
+	std::size_t operator()(const Coordinate& c) const {
+		return c.row * 7 + c.col * 5 + c.depth * 11;
+	}
+};
+
 
 std::string to_string(Coordinate c) {
 	return "(" + std::to_string(c.col) + ", " + std::to_string(c.row) + ", " + std::to_string(c.depth) + ")";

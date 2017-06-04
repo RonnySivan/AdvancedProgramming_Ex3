@@ -15,6 +15,28 @@
 #define DEFAULT_DELAY 1000
 #define MAX_ABS_PATH  1024
 
+/*functions for mmapping Coordinate*/
+
+// this is one way to define hash function for a type
+// see: http://en.cppreference.com/w/cpp/utility/hash
+struct MyHash {
+	std::size_t operator()(const Coordinate& c) const {
+		return c.row * 7 + c.col * 5 + c.depth * 11;
+	}
+};
+
+std::string to_string(Coordinate c);
+
+std::ostream& operator<<(std::ostream& out, const Coordinate& c);
+
+// required for unordered_map
+bool operator==(const Coordinate& c1, const Coordinate& c2);
+
+// required for map
+bool operator<(const Coordinate& c1, const Coordinate& c2);
+
+
+
 class Util
 {
 public:

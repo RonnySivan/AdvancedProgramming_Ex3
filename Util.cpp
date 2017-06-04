@@ -158,7 +158,6 @@ bool Util::setDefaultArgs(std::vector<std::string>& filesList, int& numOfThreads
 
 /*functions for mmapping Coordinate*/
 
-
 std::string to_string(Coordinate c) {
 	return "(" + std::to_string(c.col) + ", " + std::to_string(c.row) + ", " + std::to_string(c.depth) + ")";
 }
@@ -183,13 +182,6 @@ bool operator<(const Coordinate& c1, const Coordinate& c2) {
 	return c1.col < c2.col;
 }
 
-// this is one way to define hash function for a type
-// see: http://en.cppreference.com/w/cpp/utility/hash
-struct MyHash {
-	std::size_t operator()(const Coordinate& c) const {
-		return c.row * 7 + c.col * 5 + c.depth * 11;
-	}
-};
 
 void Util::initMain(int argc, char* argv[], std::string& path, bool& quiet, int& delay)
 {

@@ -50,7 +50,7 @@ bool OriginalBoard::printErr(bool errors[numOfBoardErrors], std::string& errorSt
 
 bool OriginalBoard::getBoardSize(std::string& line)
 {
-	std::vector<std::string> splitCoord = Util::split(line, 'x');
+	std::vector<std::string> splitCoord = Util::split(line, 'X');
 	if (splitCoord.size() != 3)
 			return false;
 	
@@ -64,13 +64,15 @@ bool OriginalBoard::getBoardSize(std::string& line)
 
 void OriginalBoard::parseLine(std::string& line, int depth, int row)
 {
-	int col = 1;
-	while (col <= _cols && col < (signed) line.length())
+	int col = 0;
+	int l = static_cast<int>(line.length());
+	while (col < _cols && col < l)
 	{
 		if (BattleShip::isLegalSymbol(line[col]))
 		{
-			_boardMap[Coordinate(row, col, depth)] = line[col];
+			_boardMap[Coordinate(row, col + 1, depth)] = line[col];
 		}
+		col++;
 	}
 }
 
@@ -133,13 +135,13 @@ void OriginalBoard::isEmptyNeighbors(int r, int c, int d, bool checkVert, bool c
 		case 0:
 			if ((r > 0 && checkVert) || (c > 0 && checkHorz) || (d > 0 && checkDepth))
 			{
-				neighbor = charAt(Coordinate(r - 1 * checkVert, c - checkHorz, d - checkDepth));
+				neighbor = charAt(Coordinate(r - 1 * checkVert, c - 1 * checkHorz, d - 1 * checkDepth));
 				check = true;
 			}
 		default:
 			if ((r < _rows && checkVert) || (c < _cols && checkHorz) || (d < _depth && checkDepth))
 			{
-				neighbor = charAt(Coordinate(r + 1 * checkVert, c + checkHorz, d + checkDepth));
+				neighbor = charAt(Coordinate(r + 1 * checkVert, c + 1 * checkHorz, d + 1 * checkDepth));
 				check = true;
 			}
 		}
@@ -157,7 +159,7 @@ std::pair<bool, bool> OriginalBoard::isLegalSeqHorz(int r, int c, int d, std::ve
 	auto len = 0;
 	char type = charAt(Coordinate(r, c, d));
 	std::pair<bool, bool> illegal(false, false); //(adjucent ships, legal length of type)
-	for (auto k = c; k < _cols; k++)
+	for (auto k = c; k <= _cols; k++)
 	{
 		char cur = charAt(Coordinate(r , k, d));
 		if (cur != type)
@@ -182,7 +184,7 @@ std::pair<bool, bool> OriginalBoard::isLegalSeqVert(int r, int c, int d, std::ve
 	auto len = 0;
 	char type = charAt(Coordinate(r, c, d));
 	std::pair<bool, bool> illegal(false, false); //(adjucent ships, legal length of type)
-	for (auto k = r; k < _rows; k++)
+	for (auto k = r; k <= _rows; k++)
 	{
 		char cur = charAt(Coordinate(k, c, d));
 		if (cur != type)
@@ -205,9 +207,9 @@ std::pair<bool, bool> OriginalBoard::isLegalSeqVert(int r, int c, int d, std::ve
 std::pair<bool, bool> OriginalBoard::isLegalSeqDeep(int r, int c, int d, std::vector<Coordinate>& locations) const
 {
 	auto len = 0;
-	char type =charAt(Coordinate(r, c, d));
+	char type = charAt(Coordinate(r, c, d));
 	std::pair<bool, bool> illegal(false, false); //(adjucent ships, legal length of type)
-	for (auto k = d; k < _depth; k++)
+	for (auto k = d; k <= _depth; k++)
 	{
 		char cur = charAt(Coordinate(r, c, k));
 		if (cur != type)
@@ -261,13 +263,13 @@ void OriginalBoard::findShips(bool errorsInBoard[numOfBoardErrors], std::vector<
 					}
 					if (!horz.first)
 					{
-						//legal vert ship!
+						//legal horz ship!
 						ships.push_back(BattleShip(type, locH));
 						continue;
 					}
 					if (!deep.first)
 					{
-						//legal vert ship!
+						//legal deep ship!
 						ships.push_back(BattleShip(type, locD));
 						continue;
 					}
@@ -318,7 +320,7 @@ void OriginalBoard::getBattleShips(std::vector<BattleShip>& ships, int playerID)
 
 char OriginalBoard::charAt(Coordinate c) const
 {
-	if (c.row > 0 && c.row < _rows && c.col > 0 && c.col < _cols && c.depth > 0 && c.depth < _depth)
+	if (c.row > 0 && c.row <= _rows && c.col > 0 && c.col <= _cols && c.depth > 0 && c.depth <= _depth)
 	{
 		std::map<Coordinate, char>::const_iterator cur = _boardMap.find(c);
 		if (cur != _boardMap.end())

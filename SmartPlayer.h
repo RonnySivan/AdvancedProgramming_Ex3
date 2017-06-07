@@ -5,6 +5,8 @@
 #include <random>
 #include <algorithm>
 #include "IBattleshipGameAlgo.h"
+#include "Battleship.h"
+#include "Util.h"
 
 class SmartPlayer : public IBattleshipGameAlgo
 {
@@ -14,8 +16,7 @@ class SmartPlayer : public IBattleshipGameAlgo
 	};
 
 	// class members
-	const BoardData* m_board; // TODO: move to GeneralPlayer if we keep m_player
-	//GeneralPlayer m_player; // player's common data TODO: maybe not needed!
+	const BoardData* m_board;
 	int m_id;
 	State m_state; // algorithm state
 	std::vector<Coordinate> m_potential_attacks; // potential attack moves vector
@@ -24,12 +25,21 @@ class SmartPlayer : public IBattleshipGameAlgo
 	std::set< Coordinate > m_first_found_set; // first location found of an oponent's ship (potentially), to be attacked later
 	Coordinate m_ship_edge;
 	std::mt19937 m_generator; //for random search
+	std::vector<BattleShip> ships;
 
 	// class private functions
 	/**
 	 * Push all potential attack moves to m_potential_attacks vector. This function MUST be called after calling m_player.commonSetBoard()
 	 */
 	void init_potential_attacks();
+
+	
+	/**
+	 * \brief finds all player's ships on board and puts them in ships vector
+	 * \param board player's board accepted in setBoard() function, and should be valid
+	 * \param ships vector to hold player's ships
+	 */
+	void findShips(const BoardData& board, std::vector<BattleShip>& ships);
 
 	/**
 	 * \brief calculates a random attack move
@@ -109,14 +119,15 @@ class SmartPlayer : public IBattleshipGameAlgo
 	void update_potential_attacks(const Coordinate& ship_start, const Coordinate& ship_end, int direction);
 
 	/**
-	 * \brief removes neighbors of a sinked ship from m_potential_attacks vector
+	 * \brief removes neighbors of a coordinate from m_potential_attacks vector
 	 * \param location one of the sinked ship's locations
 	 * \param direction 0 if ship was vertical, 1 if ship was horizontal, else 2 (had depth)
 	 */
-	void remove_neighbors(const Coordinate& location, int direction);
+	void remove_coordinate_neighbors(const Coordinate& location, int direction);
 	
 	/**
-	 * \brief performs binary search of val in *sorted* cont, and if found it is erased
+	 * \brief performs binary search of val in *sorted* cont, and if found it is erased.
+	 * based on behavior described in http://www.cplusplus.com/reference/algorithm/binary_search/
 	 * \tparam ForwardIterator iterators that can access sequence of elements in a range in the direction that goes from its beginning towards its end
 	 * \tparam T type of elements in container that can be compared
 	 * \tparam Container any c++ container

@@ -6,6 +6,7 @@
 #include "Util.h"
 #include <vector>
 #include <map>
+#include <string.h>
 
 
 #define boardErrorWrongSizeForShipB 0

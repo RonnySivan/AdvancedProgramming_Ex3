@@ -1,6 +1,11 @@
 ﻿#include "GameBoard.h"
 
-GameBoard::GameBoard(OriginalBoard& originalBoard) : _originalBoard(&originalBoard) {}
+GameBoard::GameBoard(std::shared_ptr<OriginalBoard> originalBoard) : _originalBoard(originalBoard)
+{
+	_rows = (_originalBoard.get())->rows();
+	_cols = (_originalBoard.get())->cols();
+	_depth = (_originalBoard.get())->depth();
+}
 
 char GameBoard::charAt(Coordinate c) const {
 	std::map<Coordinate, char>::const_iterator cur = _updatedBoard.find(c);

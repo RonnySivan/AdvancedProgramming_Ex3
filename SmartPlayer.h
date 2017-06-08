@@ -19,7 +19,7 @@ class SmartPlayer : public IBattleshipGameAlgo
 	const BoardData* m_board;
 	int m_id;
 	State m_state; // algorithm state
-	std::vector<Coordinate> m_potential_attacks; // potential attack moves vector
+	std::set< Coordinate > m_potential_attacks; // potential attack moves set
 	Coordinate m_last_good_attack; // last attack that hit oponent's ship
 	Coordinate m_cur_first_found; // first location found of an oponent's ship, to be currently attacked
 	std::set< Coordinate > m_first_found_set; // first location found of an oponent's ship (potentially), to be attacked later
@@ -29,7 +29,7 @@ class SmartPlayer : public IBattleshipGameAlgo
 
 	// class private functions
 	/**
-	 * Push all potential attack moves to m_potential_attacks vector. This function MUST be called after calling m_player.commonSetBoard()
+	 * Push all potential attack moves to m_potential_attacks set. This function MUST be called after calling m_player.commonSetBoard()
 	 */
 	void init_potential_attacks();
 
@@ -39,17 +39,17 @@ class SmartPlayer : public IBattleshipGameAlgo
 	 * \param board player's board accepted in setBoard() function, and should be valid
 	 * \param ships vector to hold player's ships
 	 */
-	void findShips(const BoardData& board, std::vector<BattleShip>& ships);
+	void findShips(const BoardData& board, std::vector<BattleShip>& ships); // TODO
 
 	/**
 	 * \brief calculates a random attack move
-	 * \return random attack move from m_potential_attacks vector
+	 * \return random attack move from m_potential_attacks set
 	 */
 	Coordinate attackRand();
 	
 	/**
 	 * \brief calculates next attack move according to m_state
-	 * \return calculated attack move from m_potential_attacks vector
+	 * \return calculated attack move from m_potential_attacks set
 	 */
 	Coordinate attackState();
 
@@ -60,9 +60,9 @@ class SmartPlayer : public IBattleshipGameAlgo
 	void check_neighbors(const Coordinate& attack);
 
 	/**
-	 * \brief checks if attack is in m_potential_attacks vector
+	 * \brief checks if attack is in m_potential_attacks set
 	 * \param attack next attack move being examined in attackState()
-	 * \return true if attack is in m_potential_attacks vector, else false
+	 * \return true if attack is in m_potential_attacks set, else false
 	 */
 	bool check_attack(const Coordinate& attack);
 
@@ -75,7 +75,7 @@ class SmartPlayer : public IBattleshipGameAlgo
 	void calc_state(int playerID, Coordinate move, const AttackResult& last_attack_result);
 	
 	/**
-	 * \brief calculates m_state and updates m_potential_attacks vector after oponent's attack
+	 * \brief calculates m_state and updates m_potential_attacks set after oponent's attack
 	 * \param playerID oponent's id
 	 * \param move last attack Coordinate
 	 * \param last_attack_result oponent's attack result
@@ -111,7 +111,7 @@ class SmartPlayer : public IBattleshipGameAlgo
 	void sink_update(const Coordinate& ship_start, const Coordinate& ship_end);
 
 	/**
-	 * \brief updates m_potential_attacks vector after a ship is sinked
+	 * \brief updates m_potential_attacks set after a ship is sinked
 	 * \param ship_start location of one edge of the ship 
 	 * \param ship_end location of the other edge of the ship
 	 * \param direction 0 if ship was vertical, 1 if ship was horizontal, else 2 (had depth)
@@ -119,26 +119,19 @@ class SmartPlayer : public IBattleshipGameAlgo
 	void update_potential_attacks(const Coordinate& ship_start, const Coordinate& ship_end, int direction);
 
 	/**
-	 * \brief removes neighbors of a coordinate from m_potential_attacks vector
+	 * \brief removes neighbors of a coordinate from m_potential_attacks set
 	 * \param location one of the sinked ship's locations
 	 * \param direction 0 if ship was vertical, 1 if ship was horizontal, else 2 (had depth)
 	 */
 	void remove_coordinate_neighbors(const Coordinate& location, int direction);
 	
 	/**
-	 * \brief performs binary search of val in *sorted* cont, and if found it is erased.
-	 * based on behavior described in http://www.cplusplus.com/reference/algorithm/binary_search/
-	 * \tparam ForwardIterator iterators that can access sequence of elements in a range in the direction that goes from its beginning towards its end
-	 * \tparam T type of elements in container that can be compared
-	 * \tparam Container any c++ container
-	 * \param first forward iterator to the initial position of a sorted (or properly partitioned) sequence
-	 * \param last forward iterator to the final position of a sorted (or properly partitioned) sequence
-	 * \param val value to search for in the range.
-	 * \param cont container which holds the sequence to search in
-	 * \return true if val was found in cont between first and last, else false
+	 * \brief search val in set, and if found erase it from set.
+	 * \param val value to search for in the set.
+	 * \param set to search in
+	 * \return true if val was found in set, else false
 	 */
-	template <class ForwardIterator, class T, class Container>
-	bool binary_search_and_erase(ForwardIterator first, ForwardIterator last, const T& val, Container& cont);
+	static bool set_search_and_erase(const Coordinate& val, std::set<Coordinate>& set);
 
 public:
 	SmartPlayer();

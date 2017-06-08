@@ -3,9 +3,9 @@
 GameBoard::GameBoard(OriginalBoard& originalBoard) : _originalBoard(&originalBoard) {}
 
 char GameBoard::charAt(Coordinate c) const {
-	if (c.row > 0 && c.row < _originalBoard->rows() &&
-		c.col> 0 && c.col < _originalBoard->cols() &&
-		c.depth> 0 && c.depth < _originalBoard->depth())
+	if (c.row > 0 && c.row <= _originalBoard->rows() &&
+		c.col> 0 && c.col <= _originalBoard->cols() &&
+		c.depth> 0 && c.depth <= _originalBoard->depth())
 	{
 		std::map<Coordinate, char>::const_iterator cur = _updatedBoard.find(c);
 		if (cur != _updatedBoard.end())

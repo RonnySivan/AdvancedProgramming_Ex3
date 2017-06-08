@@ -24,10 +24,16 @@ bool Util::findFiles(const std::string& path, std::vector<std::string>& filesLis
 	std::string cd_command = "2>NUL cd " + fullPath;
 
 	if (system(cd_command.c_str()))
+	{
+		std::cout << "Wrong path: " << ((path.compare("") == 0) ? "Working Directory" : path) << std::endl;
 		return false;
+	}
 
-	if (system("2>NUL cd ../"))
+	if (system("2>NUL cd ../")) ///TODO - can remove this? 
+	{
+		std::cout << "Wrong path: " << ((path.compare("") == 0) ? "Working Directory" : path) << std::endl;
 		return false;
+	}
 
 	std::string dir_command = "2>NUL dir /a-d /b \"" + fullPath + "\"";
 	FILE* fp = _popen(dir_command.c_str(), "r");
@@ -39,7 +45,32 @@ bool Util::findFiles(const std::string& path, std::vector<std::string>& filesLis
 	}
 
 	_pclose(fp);
+
+	if (!Util::findBoardAndDlls(path, filesList))
+		return false;
+
 	return true;
+}
+
+bool Util::findBoardAndDlls(const std::string& path, std::vector<std::string>& filesList)
+{
+	std::string fileBoard = Util::findSuffix(filesList, ".sboard", 1);
+	std::string fileDll1 = Util::findSuffix(filesList, ".dll", 1);
+	std::string fileDll2 = Util::findSuffix(filesList, ".dll", 2);
+
+	if (fileBoard.compare("") == 0) {
+		std::cout << "No board files (*.sboard) looking in path: " << path << std::endl;
+		return false;
+	}
+
+	if (fileDll1.compare("") == 0 || fileDll2.compare("") == 0)
+	{
+		std::cout << "Missing algorithm (dll) files looking in path: " << path << " (needs at least two)" << std::endl;
+		return false;
+	}
+
+	return true;
+
 }
 
 std::string Util::findSuffix(std::vector<std::string>& filesList, std::string suffix, int num)
@@ -57,7 +88,7 @@ std::string Util::findSuffix(std::vector<std::string>& filesList, std::string su
 	return "";
 }
 
-void Util::findAllFilesWithSuffix(std::vector<std::string>& filesList, std::vector<std::string> foundFiles, std::string suffix)
+void Util::findAllFilesWithSuffix(std::vector<std::string>& filesList, std::vector<std::string> &foundFiles, std::string suffix)
 {
 	for (std::vector<std::string>::iterator itr = filesList.begin(); itr != filesList.end(); ++itr)
 	{
@@ -93,25 +124,6 @@ std::vector<std::string> Util::split(const std::string& s, char delim)
 	return elems;
 }
 
-bool Util::existsFiles(std::string& fileBoard, std::string& fileDllA, std::string& fileDllB,
-	const std::string& path, bool isLegalBoard)
-{
-	bool validFiles = true;
-	std::string dir;
-	(path.compare("") == 0) ? dir = "Working Directory" : dir = path;
-
-	if (fileBoard.compare("") == 0) {
-		std::cout << "Missing board file (*.sboard) looking in path: " << dir << std::endl; //TODO write to logger
-		validFiles = false;
-	}
-	if (fileDllA.compare("") == 0 || fileDllB.compare("") == 0)
-	{
-		std::cout << "Missing an algorithm (dll) file looking in path: " << dir << std::endl; //TODO write to logger
-		validFiles = false;
-	}
-
-	return validFiles && isLegalBoard;
-}
 
 bool Util::setDefaultArgs(std::vector<std::string>& filesList, int& numOfThreads)
 {
@@ -184,22 +196,18 @@ bool operator<(const Coordinate& c1, const Coordinate& c2) {
 }
 
 
-void Util::initMain(int argc, char* argv[], std::string& path, bool& quiet, int& delay)
+void Util::initMain(int argc, char* argv[], std::string& path, int& threads)
 {
+
 	for (auto i = 1; i < argc; ++i)
 	{
-
-		if (!strcmp(argv[i], "-quiet"))
-		{
-			quiet = true;
-		}
-		else if (!strcmp(argv[i], "-delay"))
+		if (!strcmp(argv[i], "-threads"))
 		{
 			if ((i + 1) < argc)
 			{
 				try
 				{
-					delay = std::stoi(argv[i + 1]);
+					threads = std::stoi(argv[i + 1]);
 				}
 				catch (std::invalid_argument)
 				{
@@ -219,6 +227,17 @@ void Util::initMain(int argc, char* argv[], std::string& path, bool& quiet, int&
 
 	path.erase(std::remove(path.begin(), path.end(), ' '), path.end());
 	path = Util::findAbsPath(path.c_str());
+}
+
+
+std::string Util::CurrentDateTime()
+{
+	auto     now = time(nullptr);
+	struct tm  tstruct;
+	char       buf[80];
+	localtime_s(&tstruct, &now);
+	strftime(buf, sizeof(buf), "%Y-%m-%d.%X", &tstruct);
+	return buf;
 }
 
 

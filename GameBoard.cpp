@@ -16,7 +16,7 @@ char GameBoard::charAt(Coordinate c) const {
 	return _originalBoard->charAt(c);
 }
 
-void GameBoard::setSymbol(Coordinate& attackIndexes, char newSymbol)
+void GameBoard::setSymbol(Coordinate attackIndexes, char newSymbol)
 {
 	if (attackIndexes.row > 0 && attackIndexes.row <= _originalBoard->rows() &&
 		attackIndexes.col> 0 && attackIndexes.col <= _originalBoard->cols() &&
@@ -27,7 +27,7 @@ void GameBoard::setSymbol(Coordinate& attackIndexes, char newSymbol)
 	}
 }
 
-std::pair<AttackResult, int> GameBoard::checkAttackResult(Coordinate& attackMove) const
+std::pair<AttackResult, int> GameBoard::checkAttackResult(Coordinate attackMove) const
 {
 	char symbol = charAt(attackMove);
 

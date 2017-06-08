@@ -101,12 +101,12 @@ bool Util::existsFiles(std::string& fileBoard, std::string& fileDllA, std::strin
 	(path.compare("") == 0) ? dir = "Working Directory" : dir = path;
 
 	if (fileBoard.compare("") == 0) {
-		std::cout << "Missing board file (*.sboard) looking in path: " << dir << std::endl;
+		std::cout << "Missing board file (*.sboard) looking in path: " << dir << std::endl; //TODO write to logger
 		validFiles = false;
 	}
 	if (fileDllA.compare("") == 0 || fileDllB.compare("") == 0)
 	{
-		std::cout << "Missing an algorithm (dll) file looking in path: " << dir << std::endl;
+		std::cout << "Missing an algorithm (dll) file looking in path: " << dir << std::endl; //TODO write to logger
 		validFiles = false;
 	}
 
@@ -117,14 +117,14 @@ bool Util::setDefaultArgs(std::vector<std::string>& filesList, int& numOfThreads
 {
 	std::string configFile = findSuffix(filesList, ".config", 1);
 	if (configFile.compare("") == 0) {
-		//std::cout << "Error: *.config file in missing " << boardPath << std::endl;
+		//std::cout << "Error: *.config file in missing " << boardPath << std::endl; //TODO write to logger
 		return false;
 	}
 	std::string line;
 	std::ifstream fin(configFile);
 
 	if (!fin.is_open()) {
-		//std::cout << "Error: Cannot open *.config file in " << boardPath << std::endl;
+		//std::cout << "Error: Cannot open *.config file in " << boardPath << std::endl; //TODO write to logger
 		return false;
 	}
 	while (getline(fin, line))
@@ -133,6 +133,7 @@ bool Util::setDefaultArgs(std::vector<std::string>& filesList, int& numOfThreads
 		if (tokens.size() < 2)
 		{
 			//std::cout << "Error: configuration file doesn't contain a default argument for number of threads " << boardPath << std::endl;
+			//TODO write to logger
 			return false;
 		}
 		try

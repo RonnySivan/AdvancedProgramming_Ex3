@@ -24,7 +24,7 @@ public:
 	/*
 	* set the symbol in the attckIndexes in the board to be newSymbol
 	*/
-	void setSymbol(Coordinate& attackIndexes, char newSymbol);
+	void setSymbol(Coordinate attackIndexes, char newSymbol);
 
 
 	/*
@@ -34,5 +34,5 @@ public:
 	and the ID of the player that it's ship eas Hitted\Sink
 	(player ID 2 for Miss )
 	*/
-	std::pair<AttackResult, int> checkAttackResult(Coordinate& attackMove) const;
+	std::pair<AttackResult, int> checkAttackResult(Coordinate attackMove) const;
 };

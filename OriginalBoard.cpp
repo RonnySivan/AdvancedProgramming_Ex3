@@ -50,7 +50,8 @@ bool OriginalBoard::printErr(bool errors[numOfBoardErrors], std::string& errorSt
 
 bool OriginalBoard::getBoardSize(std::string& line)
 {
-	std::vector<std::string> splitCoord = Util::split(line, 'X');
+	std::transform(line.begin(), line.end(), line.begin(), ::tolower);
+	std::vector<std::string> splitCoord = Util::split(line, 'x');
 	if (splitCoord.size() != 3)
 			return false;
 	

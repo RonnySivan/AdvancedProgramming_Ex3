@@ -37,8 +37,6 @@ void SmartPlayer::setBoard(const BoardData& board)
 
 void SmartPlayer::init_potential_attacks()
 {
-	// init a sorted vector for efficient find by value (binary search using lower_bound)
-	// TODO: set range 1-10 instead of 0-9?
 	for (auto i = 1; i <= m_board->rows(); ++i)
 	{
 		for (auto j = 1; j <= m_board->cols(); ++j)
@@ -48,7 +46,7 @@ void SmartPlayer::init_potential_attacks()
 				Coordinate cur(i, j, k);
 				if (m_board->charAt(cur) == ' ')
 				{
-					m_potential_attacks.push_back(cur);
+					m_potential_attacks.insert(cur);
 				}
 			}
 		}
@@ -75,12 +73,16 @@ void SmartPlayer::notifyOnAttackResult(int player, Coordinate move, AttackResult
 Coordinate SmartPlayer::attackRand()
 {
 	auto range = m_potential_attacks.size() - 1;
+
 	// generate a random number from 1 to range, assuming uniform distribution
 	std::uniform_int_distribution<size_t> distribution(0, range);
 	auto random = distribution(m_generator);
-
-	auto ans = m_potential_attacks[random]; // keep the attack move to be returned before erasing it from vector
-	m_potential_attacks.erase(m_potential_attacks.cbegin() + random);
+	
+	// get that random coordinate from m_potential_attacks
+	auto it(m_potential_attacks.cbegin());
+	advance(it, random);
+	auto ans = *it; // keep the attack move to be returned before erasing it from vector
+	m_potential_attacks.erase(it);
 	return ans;
 }
 
@@ -121,7 +123,7 @@ void SmartPlayer::check_neighbors(const Coordinate& attack)
 		return;
 
 	// check if attack's neighbors were already self-hit by oponent - belongs to the same ship being currently attacked
-	std::vector<Coordinate> neighbors(6);
+	std::vector<Coordinate> neighbors(6, { 0, 0, 0 });
 	neighbors[0] = neighbors[1] = neighbors[2] = neighbors[3] = neighbors[4] = neighbors[5] = attack;
 	neighbors[0].row--;
 	neighbors[1].row++;
@@ -132,7 +134,7 @@ void SmartPlayer::check_neighbors(const Coordinate& attack)
 
 	for (auto i = 0; i < neighbors.size(); ++i)
 	{
-		if (binary_search_and_erase(m_first_found_set.cbegin(), m_first_found_set.cend(), neighbors[i], m_first_found_set)) {
+		if (set_search_and_erase(neighbors[i], m_first_found_set)) {
 			m_last_good_attack = neighbors[i];
 			switch (i)
 			{
@@ -151,7 +153,7 @@ void SmartPlayer::check_neighbors(const Coordinate& attack)
 bool SmartPlayer::check_attack(const Coordinate& attack)
 {	
 	// check if attack is in potential attacks vector
-	if (binary_search_and_erase(m_potential_attacks.cbegin(), m_potential_attacks.cend(), attack, m_potential_attacks)) 
+	if (set_search_and_erase(attack, m_potential_attacks)) 
 		return true;  // attack was found in potential attacks vector end removed from it
 	
 	// else - attack is not a potential attack, go to next state
@@ -190,7 +192,7 @@ void SmartPlayer::calc_state(int playerID, Coordinate move, const AttackResult& 
 void SmartPlayer::oponent_attack(int playerID, Coordinate move, const AttackResult & last_attack_result)
 {
 	// check if attack move is in potential attacks vector
-	if (binary_search_and_erase(m_potential_attacks.cbegin(), m_potential_attacks.cend(), move, m_potential_attacks)) {
+	if (set_search_and_erase(move, m_potential_attacks)) {
 		// attack move was found in potential attacks vector and removed from it
 		if (last_attack_result != AttackResult::Miss) // oponent's self hit/sink
 			calc_state(playerID, move, last_attack_result);
@@ -324,7 +326,7 @@ void SmartPlayer::update_potential_attacks(const Coordinate& ship_start, const C
 }
 
 void SmartPlayer::remove_coordinate_neighbors(const Coordinate& location, int direction) { // TODO: update
-	std::vector<Coordinate> neighbors(4);
+	std::vector<Coordinate> neighbors(4, { 0, 0, 0 });
 	neighbors[0] = neighbors[1] = neighbors[2] = neighbors[3] = location;
 	switch (direction)
 	{
@@ -352,20 +354,20 @@ void SmartPlayer::remove_coordinate_neighbors(const Coordinate& location, int di
 	
 	for (auto neighbor : neighbors) {
 		// if neighbor is in m_first_found_set - belongs to a sinked ship, should remove it and erase it's neighbours
-		if (!m_first_found_set.empty() && binary_search_and_erase(m_first_found_set.cbegin(), m_first_found_set.cend(), neighbor, m_first_found_set)) {
+		if (!m_first_found_set.empty() && set_search_and_erase(/*m_first_found_set.cbegin(), m_first_found_set.cend(), */neighbor, m_first_found_set)) {
 			remove_coordinate_neighbors(neighbor, direction);
 		}
-		binary_search_and_erase(m_potential_attacks.cbegin(), m_potential_attacks.cend(), neighbor, m_potential_attacks);
+		set_search_and_erase(/*m_potential_attacks.cbegin(), m_potential_attacks.cend(), */neighbor, m_potential_attacks);
 	}
 }
 
-template <class ForwardIterator, class T, class Container>
-bool SmartPlayer::binary_search_and_erase(ForwardIterator first, ForwardIterator last, const T& val, Container& cont) {
-	first = std::lower_bound(first, last, val);
-	bool ans = (first != last && !(val < *first));
-	if (ans)
-		cont.erase(first);
-	return ans;
+bool SmartPlayer::set_search_and_erase(const Coordinate& val, std::set<Coordinate>& set) {
+	auto it = set.find(val);
+	if (it != set.end()) 	{
+		set.erase(val);
+		return true;
+	}
+	return false;
 }
 
 IBattleshipGameAlgo* GetAlgorithm()

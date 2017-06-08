@@ -173,13 +173,13 @@ bool operator==(const Coordinate& c1, const Coordinate& c2) {
 
 // required for map
 bool operator<(const Coordinate& c1, const Coordinate& c2) {
-	if (c1.col == c2.col) {
-		if (c1.row == c2.row) {
+	if (c1.row == c2.row) {
+		if (c1.col == c2.col) {
 			return c1.depth < c2.depth;
 		}
-		return c1.row < c2.row;
+		return c1.col < c2.col;
 	}
-	return c1.col < c2.col;
+	return c1.row < c2.row;
 }
 
 

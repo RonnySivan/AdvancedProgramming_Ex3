@@ -5,7 +5,7 @@
 SmartPlayer::SmartPlayer() : m_board(nullptr), // TODO: move to GeneralPlayer if we keep m_player
 							 m_id(-1),
                              m_state(State::Search),
-                             m_last_good_attack(0, 0, 0),
+							 m_last_good_attack(0, 0, 0),
                              m_cur_first_found(0, 0, 0),
                              m_ship_edge(0, 0, 0),
                              m_generator(std::random_device{}())
@@ -27,10 +27,7 @@ void SmartPlayer::setPlayer(int player)
 void SmartPlayer::setBoard(const BoardData& board)
 {
 	// initialize player's members for a new board:
-	m_board = &board; // TODO: move to GeneralPlayer if we keep m_player
-	/*m_player.updatePlayer(numRows, numCols, player); TODO: DELETE
-	m_player.updatePlayer(board.rows(), board.cols(), board.depth(), player);
-	m_player.initBoardComplex(board);*/
+	m_board = &board;
 	m_state = State::Search;
 	m_potential_attacks.clear();
 	init_potential_attacks();
@@ -280,17 +277,17 @@ void SmartPlayer::sink_update(const Coordinate& ship_start, const Coordinate& sh
 }
 
 void SmartPlayer::update_potential_attacks(const Coordinate& ship_start, const Coordinate& ship_end, int direction)
-{
+{ // TODO: update to receive ship as a parameter
 	// remove neighbors from the edges // TODO: update for 3D
-	remove_neighbors(ship_start, true);
-	remove_neighbors(ship_start, false);
+	remove_coordinate_neighbors(ship_start, true);
+	remove_coordinate_neighbors(ship_start, false);
 
 	//if (ship_start != ship_end) // TODO: check why it doesn't compile - use global operator == from Util after Tiana's push (Amir's example)
 	if ((ship_start.row != ship_end.row) || (ship_start.col != ship_end.col) || (ship_start.depth != ship_end.depth))
 	{
 		for (auto i = 0; i < 2; ++i)
 		{
-			remove_neighbors(ship_end, i);
+			remove_coordinate_neighbors(ship_end, i);
 		}
 
 		// remove neighbors from the middle
@@ -303,7 +300,7 @@ void SmartPlayer::update_potential_attacks(const Coordinate& ship_start, const C
 				for (auto i = 1; i < range; ++i)
 				{
 					cur.row += i;
-					remove_neighbors(cur, 0);
+					remove_coordinate_neighbors(cur, 0);
 				}
 			}
 		}
@@ -314,39 +311,49 @@ void SmartPlayer::update_potential_attacks(const Coordinate& ship_start, const C
 				for (auto i = 1; i < range; ++i)
 				{
 					cur.col += i;
-					remove_neighbors(cur, 1);
+					remove_coordinate_neighbors(cur, 1);
 				}
 			}
 
 		}
-		else { // direction == 2 - deapth
+		else { // direction == 2 - depth
 			// TODO
 		}
 		
 	}
 }
 
-void SmartPlayer::remove_neighbors(const Coordinate& location, int direction) { // TODO: update
-	std::vector<Coordinate> neighbors(2);
-	neighbors[0] = neighbors[1] = location;
-	if (direction == 0) { // vertical
-		neighbors[0].col -= 1;
-		neighbors[1].col += 1;
-	}
-	else if (direction == 1) { // horizontal
-		neighbors[0].row -= 1;
-		neighbors[1].row += 1;
-	}
-	else { // direction == 2 - depth
-		neighbors[0].depth -= 1;
-		neighbors[1].depth += 1;
+void SmartPlayer::remove_coordinate_neighbors(const Coordinate& location, int direction) { // TODO: update
+	std::vector<Coordinate> neighbors(4);
+	neighbors[0] = neighbors[1] = neighbors[2] = neighbors[3] = location;
+	switch (direction)
+	{
+		case 0:	// vertical
+			neighbors[0].col -= 1;
+			neighbors[1].col += 1;
+			neighbors[2].depth -= 1;
+			neighbors[3].depth += 1;
+			break;
+		case 1: // horizontal
+			neighbors[0].row -= 1;
+			neighbors[1].row += 1;
+			neighbors[2].depth -= 1;
+			neighbors[3].depth += 1;
+			break;
+		case 2: // depth
+			neighbors[0].col -= 1;
+			neighbors[1].col += 1;
+			neighbors[2].row -= 1;
+			neighbors[3].row += 1;
+			break;
+		default: 
+			std::cout << "@ remove_coordinate_neighbors got wrong direction = " << direction << std::endl; // TODO: DELETE
 	}
 	
 	for (auto neighbor : neighbors) {
 		// if neighbor is in m_first_found_set - belongs to a sinked ship, should remove it and erase it's neighbours
 		if (!m_first_found_set.empty() && binary_search_and_erase(m_first_found_set.cbegin(), m_first_found_set.cend(), neighbor, m_first_found_set)) {
-			remove_neighbors(neighbor, true);
-			remove_neighbors(neighbor, false);
+			remove_coordinate_neighbors(neighbor, direction);
 		}
 		binary_search_and_erase(m_potential_attacks.cbegin(), m_potential_attacks.cend(), neighbor, m_potential_attacks);
 	}

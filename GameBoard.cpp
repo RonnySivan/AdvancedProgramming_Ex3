@@ -46,3 +46,8 @@ std::pair<AttackResult, int> GameBoard::checkAttackResult(Coordinate attackMove)
 	//shouldn't reack this line
 	return std::make_pair(AttackResult::Miss, 2);
 }
+
+void GameBoard::getBattleShips(std::vector<BattleShip>& ships, int playerID) const
+{
+	(_originalBoard.get())->getBattleShips(ships, playerID);
+}

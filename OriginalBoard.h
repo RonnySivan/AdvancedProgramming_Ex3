@@ -132,6 +132,6 @@ public:
 
 
 	/* copies ships from battleShipsA to shipsA and from battleShipsB to shipsB*/
-	void getBattleShips(std::vector<BattleShip>& ships, int playerID);
+	void getBattleShips(std::vector<BattleShip>& ships, int playerID) const;
 
 };

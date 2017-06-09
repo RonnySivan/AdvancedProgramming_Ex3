@@ -323,7 +323,7 @@ bool OriginalBoard::createBoards(const std::string& path, std::string& errorsStr
 }
 
 
-void OriginalBoard::getBattleShips(std::vector<BattleShip>& ships, int playerID)
+void OriginalBoard::getBattleShips(std::vector<BattleShip>& ships, int playerID) const
 {
 	std::vector<BattleShip> fromShips = (playerID == 0) ? _battleShipsA : _battleShipsB;
 	for (std::vector<BattleShip>::iterator itr = fromShips.begin(); itr != fromShips.end(); ++itr)

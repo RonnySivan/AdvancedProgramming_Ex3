@@ -35,4 +35,7 @@ public:
 	(player ID 2 for Miss )
 	*/
 	std::pair<AttackResult, int> checkAttackResult(Coordinate attackMove) const;
+
+	/* copies ships from battleShipsA to shipsA and from battleShipsB to shipsB*/
+	void getBattleShips(std::vector<BattleShip>& ships, int playerID) const;
 };

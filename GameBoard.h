@@ -1,15 +1,16 @@
 #pragma once
 
 #include "OriginalBoard.h"
+#include <memory>
 
 class GameBoard : public BoardData
 {
-	OriginalBoard* _originalBoard;
+	std::shared_ptr<OriginalBoard> _originalBoard;
 	std::map<Coordinate, char> _updatedBoard;
 
 
 public:
-	GameBoard(OriginalBoard& originalBoard);
+	GameBoard(std::shared_ptr<OriginalBoard> originalBoard);
 	~GameBoard() = default;
 	// block copy and assignment
 	GameBoard(const GameBoard&) = delete;
@@ -23,7 +24,7 @@ public:
 	/*
 	* set the symbol in the attckIndexes in the board to be newSymbol
 	*/
-	void setSymbol(Coordinate& attackIndexes, char newSymbol);
+	void setSymbol(Coordinate attackIndexes, char newSymbol);
 
 
 	/*
@@ -33,5 +34,8 @@ public:
 	and the ID of the player that it's ship eas Hitted\Sink
 	(player ID 2 for Miss )
 	*/
-	std::pair<AttackResult, int> checkAttackResult(Coordinate& attackMove) const;
+	std::pair<AttackResult, int> checkAttackResult(Coordinate attackMove) const;
+
+	/* copies ships from battleShipsA to shipsA and from battleShipsB to shipsB*/
+	void getBattleShips(std::vector<BattleShip>& ships, int playerID) const;
 };

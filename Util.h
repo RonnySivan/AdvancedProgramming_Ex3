@@ -1,6 +1,8 @@
 #pragma once
 
+#include <time.h>
 #include <vector>
+#include <tuple>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -8,11 +10,6 @@
 #include <algorithm>
 #include "IBattleshipGameAlgo.h"
 
-// for printing:
-#define A_COLOR	0xb0
-#define B_COLOR	0xe0
-#define ATTACK_COLOR 0xcf
-#define DEFAULT_DELAY 1000
 #define MAX_ABS_PATH  1024
 
 /*functions for mmapping Coordinate*/
@@ -43,6 +40,19 @@ bool operator<(const Coordinate& c1, const Coordinate& c2);
 class Util
 {
 public:
+
+	/*
+	*concatenating relative path to dir path
+	*/
+	static std::string concatenateAbsolutePath(const std::string& dirPath, const std::string& fileName);
+
+
+	/*
+	* returns absolite path for the relative path given
+	*/
+	static std::string findAbsPath(const char* relativePath);
+
+
 	/*
 	* path - string of the path of the folder containing the files to be used
 	* filesList - a vector where we'll hold all the files in the given folder
@@ -62,12 +72,8 @@ public:
 	* filesList - a vector where we'll hold all the files in the given folder
 	* foundFiles - an empty vector where we'll keep all file names with given suffix
 	*/
-	static void findAllFilesWithSuffix(std::vector<std::string>& filesList, std::vector<std::string> foundFiles, std::string suffix);
+	static void findAllFilesWithSuffix(std::vector<std::string>& filesList, std::vector<std::string> &foundFiles, std::string suffix);
 
-	/*
-	* returns absolite path for the relative path given
-	*/
-	static std::string findAbsPath(const char* relativePath);
 
 	/*
 	* copied from recitation
@@ -75,32 +81,18 @@ public:
 	*/
 	static bool endsWith(std::string& value, std::string& ending);
 
-	/*
-	*concatenating relative path to dir path
-	*/
-	static std::string concatenateAbsolutePath(const std::string& dirPath, const std::string& fileName);
 
 	/*
 	*splits string s to a vector using delim
 	*/
 	static std::vector<std::string> split(const std::string& s, char delim);
 
-	/*checks the fienames aren't empty
-	* if one or more are empty, prints rellevent massage
-	* returns true if all strings != ""
-	*/
-	static bool existsFiles(std::string& fileBoard, std::string& fileDllA, std::string& fileDllB, const std::string& path, bool isLegalBoard);
-
-
-	/*
-	 * gets the names of all the files in the path given and extracts the default parameters from config file
-	 * returns true iff succedded
-	 */
-	static bool setDefaultArgs(std::vector<std::string>& filesList, int& numOfThreads);
 
 	/**
-	* initializes program veriables
+	* Get current date/time string, to append to the Logger oupput.
+	* Format is YYYY-MM-DD.HH:mm:ss
 	*/
-	static void initMain(int argc, char* argv[], std::string& path, bool& quiet, int& delay);
+	static std::string CurrentDateTime();
+
 
 };

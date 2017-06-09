@@ -1,27 +1,33 @@
 ﻿#include "GameBoard.h"
 
-GameBoard::GameBoard(OriginalBoard& originalBoard) : _originalBoard(&originalBoard) {}
+GameBoard::GameBoard(std::shared_ptr<OriginalBoard> originalBoard) : _originalBoard(originalBoard)
+{
+	_rows = (_originalBoard.get())->rows();
+	_cols = (_originalBoard.get())->cols();
+	_depth = (_originalBoard.get())->depth();
+}
 
 char GameBoard::charAt(Coordinate c) const {
-	if (c.row > 0 && c.row <= _originalBoard->rows() &&
-		c.col> 0 && c.col <= _originalBoard->cols() &&
-		c.depth> 0 && c.depth <= _originalBoard->depth())
+	std::map<Coordinate, char>::const_iterator cur = _updatedBoard.find(c);
+	if (cur != _updatedBoard.end())
 	{
-		std::map<Coordinate, char>::const_iterator cur = _updatedBoard.find(c);
-		if (cur != _updatedBoard.end())
-		{
-			return cur->second;
-		}
+		return cur->second;
 	}
 	return _originalBoard->charAt(c);
 }
 
-void GameBoard::setSymbol(Coordinate& attackIndexes, char newSymbol)
+void GameBoard::setSymbol(Coordinate attackIndexes, char newSymbol)
 {
-	_updatedBoard[attackIndexes] = newSymbol;
+	if (attackIndexes.row > 0 && attackIndexes.row <= _originalBoard->rows() &&
+		attackIndexes.col> 0 && attackIndexes.col <= _originalBoard->cols() &&
+		attackIndexes.depth> 0 && attackIndexes.depth <= _originalBoard->depth())
+	{
+		_updatedBoard[attackIndexes] = newSymbol;
+
+	}
 }
 
-std::pair<AttackResult, int> GameBoard::checkAttackResult(Coordinate& attackMove) const
+std::pair<AttackResult, int> GameBoard::checkAttackResult(Coordinate attackMove) const
 {
 	char symbol = charAt(attackMove);
 
@@ -39,4 +45,9 @@ std::pair<AttackResult, int> GameBoard::checkAttackResult(Coordinate& attackMove
 
 	//shouldn't reack this line
 	return std::make_pair(AttackResult::Miss, 2);
+}
+
+void GameBoard::getBattleShips(std::vector<BattleShip>& ships, int playerID) const
+{
+	(_originalBoard.get())->getBattleShips(ships, playerID);
 }

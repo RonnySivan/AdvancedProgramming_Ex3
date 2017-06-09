@@ -1,16 +1,17 @@
 #pragma once
 
 #include "OriginalBoard.h"
+#include <memory>
 
 
 class PlayerBoard : public BoardData
 {
 	int _playerID;
-	OriginalBoard* _originalBoard;
+	std::shared_ptr<OriginalBoard> _originalBoard;
 
 public:
-	PlayerBoard(int playerID, OriginalBoard& originalBoard);
-	~PlayerBoard();
+	PlayerBoard(int playerID, std::shared_ptr<OriginalBoard> originalBoard);
+	~PlayerBoard() = default;
 	// block copy and assignment
 	PlayerBoard(const PlayerBoard&) = delete;
 	PlayerBoard& operator=(const PlayerBoard&) = delete;

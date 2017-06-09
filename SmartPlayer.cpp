@@ -2,7 +2,7 @@
 #include <iostream> // TODO: this is only for debug prints, remove before submission
 
 
-SmartPlayer::SmartPlayer() : m_board(nullptr), // TODO: move to GeneralPlayer if we keep m_player
+SmartPlayer::SmartPlayer() : m_board(nullptr),
 							 m_id(-1),
                              m_state(State::Search),
 							 m_last_good_attack(0, 0, 0),
@@ -23,7 +23,6 @@ void SmartPlayer::setPlayer(int player)
 	m_id = player;
 }
 
-//void SmartPlayer::setBoard(int player, const char** board, int numRows, int numCols) TODO: DELETE
 void SmartPlayer::setBoard(const BoardData& board)
 {
 	// initialize player's members for a new board:
@@ -284,8 +283,7 @@ void SmartPlayer::update_potential_attacks(const Coordinate& ship_start, const C
 	remove_coordinate_neighbors(ship_start, true);
 	remove_coordinate_neighbors(ship_start, false);
 
-	//if (ship_start != ship_end) // TODO: check why it doesn't compile - use global operator == from Util after Tiana's push (Amir's example)
-	if ((ship_start.row != ship_end.row) || (ship_start.col != ship_end.col) || (ship_start.depth != ship_end.depth))
+	if (ship_start != ship_end)
 	{
 		for (auto i = 0; i < 2; ++i)
 		{

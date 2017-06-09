@@ -32,6 +32,9 @@ std::ostream& operator<<(std::ostream& out, const Coordinate& c);
 // required for unordered_map
 bool operator==(const Coordinate& c1, const Coordinate& c2);
 
+// required for SmartPlayer
+bool operator!=(const Coordinate& c1, const Coordinate& c2);
+
 // required for map
 bool operator<(const Coordinate& c1, const Coordinate& c2);
 

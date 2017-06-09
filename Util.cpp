@@ -24,10 +24,11 @@ bool Util::findFiles(const std::string& path, std::vector<std::string>& filesLis
 	std::string cd_command = "2>NUL cd " + fullPath;
 
 	if (system(cd_command.c_str()))
-	{
-		std::cout << "Wrong path: " << ((path.compare("") == 0) ? "Working Directory" : path) << std::endl;
 		return false;
-	}
+
+	if (system("2>NUL cd ../"))
+		return false;
+
 
 	std::string dir_command = "2>NUL dir /a-d /b \"" + fullPath + "\"";
 	FILE* fp = _popen(dir_command.c_str(), "r");

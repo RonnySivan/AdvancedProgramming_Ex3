@@ -8,7 +8,6 @@ TournamentManager::TournamentManager() :
 
 TournamentManager::~TournamentManager()
 {
-
 	CLogger::CloseLogger();
 
 	// Iterator to iterate over dll's vector
@@ -19,7 +18,6 @@ TournamentManager::~TournamentManager()
 	{
 		FreeLibrary(std::get<1>(*dll_vec_itr));
 	}
-
 }
 
 bool TournamentManager::initTournament(int argc, char* argv[])
@@ -53,8 +51,8 @@ bool TournamentManager::initTournament(int argc, char* argv[])
 	m_path = Util::findAbsPath(m_path.c_str());
 	if (! Util::findFiles(m_path, m_allFilesInDir))
 	{
-		CLogger::GetLogger()->Log("Error: Wrong path: <%s>", m_path);
-		//write to logger error
+		CLogger::GetLogger()->Log("Error: Wrong path: <%s>", m_path.c_str());
+		std::cout << "Error: Wrong path: <" << m_path << ">" << std::endl;
 		return false;
 	}
 	if (! givenThreads) {
@@ -69,14 +67,15 @@ void TournamentManager::setDefaultArgs()
 {
 	std::string configFile = Util::findSuffix(m_allFilesInDir, ".config", 1);
 	if (configFile.compare("") == 0) {
-		CLogger::GetLogger()->Log("Warning: *.config file is missing from path: <%s>", m_path);
+		CLogger::GetLogger()->Log("Warning: *.config file is missing from path: <%s>", m_path.c_str());
 		return;
 	}
 	std::string line;
 	std::ifstream fin(configFile);
 
 	if (!fin.is_open()) {
-		CLogger::GetLogger()->Log("Warning: Couldn't open file: <%s>, in path: <%s>", configFile, m_path);
+		CLogger::GetLogger()->Log("Warning: Couldn't open file: <%s>, in path: <%s>", 
+									configFile.c_str(), m_path.c_str());
 		return;
 	}
 	while (getline(fin, line))
@@ -99,7 +98,8 @@ void TournamentManager::setDefaultArgs()
 		catch (std::out_of_range) { }
 	}
 
-	CLogger::GetLogger()->Log("Warning: The file <%s> doesn't contain a valid argument for -thread parameter:", configFile);
+	CLogger::GetLogger()->Log("Warning: The *config file <%s> doesn't contain a valid argument for -thread parameter", 
+								configFile.c_str());
 }
 
 void TournamentManager::print_scores(std::vector<std::tuple<std::string, int, int, double, int, int>> scores)
@@ -145,15 +145,15 @@ bool TournamentManager::findBoardAndDlls()
 	std::string fileDll2 = Util::findSuffix(m_allFilesInDir, ".dll", 2);
 
 	if (fileBoard.compare("") == 0) {
-		CLogger::GetLogger()->Log("Error: No board files (*.sboard) looking in path: <%s>", m_path);
+		CLogger::GetLogger()->Log("Error: No board files (*.sboard) looking in path: <%s>", m_path.c_str());
 		std::cout << "No board files (*.sboard) looking in path: " << m_path << std::endl;
 		return false;
 	}
 
 	if (fileDll1.compare("") == 0 || fileDll2.compare("") == 0)
 	{
-		CLogger::GetLogger()->Log("Error: Missing algorithm (dll) files looking in path: <%s>", m_path);
-		std::cout << "Missing algorithm (dll) files looking in path: " << m_path << " (needs at least two)" << std::endl;
+		CLogger::GetLogger()->Log("Error: Missing algorithm (dll) files looking in path: <%s>", m_path.c_str());
+		std::cout << "Missing algorithm (dll) files looking in path: " << m_path.c_str() << " (needs at least two)" << std::endl;
 		return false;
 	}
 
@@ -171,7 +171,7 @@ bool TournamentManager::initDllsVector() {
 			HINSTANCE hDll;
 			std::string fullFileName;
 			if (!findDllFile(fileData, hDll, fullFileName)) {
-				CLogger::GetLogger()->Log("Warning: Couldn't find dll file: <%s>", fullFileName);
+				CLogger::GetLogger()->Log("Warning: Couldn't find dll file: <%s>", fullFileName.c_str());
 			}
 
 		} while (FindNextFileA(dir, &fileData));
@@ -184,8 +184,8 @@ bool TournamentManager::initDllsVector() {
 
 	if (dll_vec.size() < 2)
 	{
-		CLogger::GetLogger()->Log("Error: Missing VALID algorithm (dll) files - needs at least two: <%s>");
-		std::cout << "Missing VALID algorithm (dll) files - needs at least two " << std::endl;
+		CLogger::GetLogger()->Log("Error: Missing VALID algorithm (dll) files - needs at least two");
+		std::cout << "Missing VALID algorithm (dll) files - needs at least two" << std::endl;
 		return false;
 	}
 
@@ -203,7 +203,7 @@ bool TournamentManager::initBoardsVector()
 	{
 		std::string errors = "";
 		std::shared_ptr<OriginalBoard> board = std::make_shared<OriginalBoard>();
-		isLegal = (board.get())->createBoards(foundFiles[i], errors); // TODO - integrate with Tiana
+		isLegal = (board.get())->createBoards(foundFiles[i], errors);
 
 		if (isLegal)
 			boardsVector.push_back(board);
@@ -213,14 +213,15 @@ bool TournamentManager::initBoardsVector()
 			auto errorsVector = Util::split(errors, '\n');
 			for (auto error : errorsVector)
 			{
-				LOGGER->Log("%s : %s in sboard file: %s", (isLegal) ? "Warning" : "ERROR", error.c_str(), foundFiles[i]);
+				LOGGER->Log("%s : %s in sboard file: %s", (isLegal) ? "Warning" : "ERROR", error.c_str(), foundFiles[i].c_str());
 			}
 		}
 	}
 
 	if (boardsVector.size() == 0)
 	{
-		std::cout << "Missing LEGAL board (.sboard) file - needs at least one " << std::endl;
+		LOGGER->Log("ERROR: Missing LEGAL board (.sboard) file - needs at least one");
+		std::cout << "Missing LEGAL board (.sboard) file - needs at least one" << std::endl;
 		return false;
 	}
 

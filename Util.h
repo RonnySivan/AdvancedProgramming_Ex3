@@ -36,12 +36,7 @@ bool operator<(const Coordinate& c1, const Coordinate& c2);
 
 class Util
 {
-	/*
-	* path - string of the path of the folder containing the files to be used
-	* filesList - a vector where we'll hold all the files in the given folder
-	* return true if one .sbord file and two dll files exist in the path.
-	*/
-	static bool findBoardAndDlls(const std::string& path, std::vector<std::string>& filesList);
+public:
 
 	/*
 	*concatenating relative path to dir path
@@ -55,7 +50,6 @@ class Util
 	static std::string findAbsPath(const char* relativePath);
 
 
-public:
 	/*
 	* path - string of the path of the folder containing the files to be used
 	* filesList - a vector where we'll hold all the files in the given folder
@@ -90,17 +84,6 @@ public:
 	*/
 	static std::vector<std::string> split(const std::string& s, char delim);
 
-
-	/*
-	 * gets the names of all the files in the path given and extracts the default parameters from config file
-	 * returns true iff succedded
-	 */
-	static bool setDefaultArgs(std::vector<std::string>& filesList, int& numOfThreads);
-
-	/**
-	* initializes program veriables
-	*/
-	static void initMain(int argc, char* argv[], std::string& path, int& threads);
 
 	/**
 	* Get current date/time string, to append to the Logger oupput.

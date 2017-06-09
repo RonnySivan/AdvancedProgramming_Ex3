@@ -98,7 +98,7 @@ void TournamentManager::setDefaultArgs()
 		catch (std::out_of_range) { }
 	}
 
-	CLogger::GetLogger()->Log("Warning: The file <%s> doesn't contain a valid argument for -thread parameter:", 
+	CLogger::GetLogger()->Log("Warning: The *config file <%s> doesn't contain a valid argument for -thread parameter", 
 								configFile.c_str());
 }
 

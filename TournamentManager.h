@@ -4,12 +4,13 @@
 #include "GameManager.h"
 #include "Logger.h"
 #include "OriginalBoard.h"
+#include <memory>
 
 class TournamentManager
 {
 	const std::string m_path;
 	int threads;
-	std::vector<OriginalBoard> boardsVector;
+	std::vector<std::shared_ptr<OriginalBoard>> boardsVector;
 	std::vector<std::tuple<int , int , int>> tournamentSchedule; // TODO - what is the best way to hold those parameters? does int's are OK?
 
 

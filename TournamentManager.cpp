@@ -56,20 +56,19 @@ bool TournamentManager::initDllsVector() {
 
 bool TournamentManager::initBoardsVector(std::vector<std::string>& allFilesInDir)
 {
-
 	std::vector<std::string> foundFiles;
 	Util::findAllFilesWithSuffix(allFilesInDir, foundFiles, ".sboard");
 	auto isLegal = true;
-	OriginalBoard board;
 	int size = static_cast<int>(foundFiles.size());
 	for (auto i = 0; i < size; ++i)
 	{
 		std::string errors = "";
-		isLegal = board.createBoards(foundFiles[i], errors); // TODO - integrate with Tiana
+		std::shared_ptr<OriginalBoard> board = std::make_shared<OriginalBoard>();
+		isLegal = (board.get())->createBoards(foundFiles[i], errors); // TODO - integrate with Tiana
 
 		if (isLegal)
 			boardsVector.push_back(board);
-
+			
 		if (errors.size() > 0)
 		{
 			auto errorsVector = Util::split(errors, '\n');

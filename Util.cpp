@@ -113,6 +113,11 @@ bool operator==(const Coordinate& c1, const Coordinate& c2) {
 	return c1.col == c2.col && c1.row == c2.row && c1.depth == c2.depth;
 }
 
+bool operator!=(const Coordinate & c1, const Coordinate & c2)
+{
+	return c1.row != c2.row || c1.col != c2.col || c1.depth != c2.depth;
+}
+
 // required for map and set
 bool operator<(const Coordinate& c1, const Coordinate& c2) {
 	if (c1.row == c2.row) {

@@ -40,8 +40,8 @@ BattleShip::~BattleShip() {}
 
 AttackResult BattleShip::shipAttackResult(Coordinate attackMove)
 {
-
-	for (int i = 0; i < (signed) m_locations.size(); i++)
+	int size = static_cast<int>(m_locations.size());
+	for (int i = 0; i < size; i++)
 	{
 		if ((m_locations[i].row == attackMove.row) && 
 			(m_locations[i].col == attackMove.col) &&

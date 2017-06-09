@@ -1,4 +1,4 @@
-#include "TournamentManager.h"
+﻿#include "TournamentManager.h"
 
 TournamentManager::TournamentManager(const std::string path, int threads) :
 	m_path(path), threads(threads)
@@ -61,8 +61,8 @@ bool TournamentManager::initBoardsVector(std::vector<std::string>& allFilesInDir
 	Util::findAllFilesWithSuffix(allFilesInDir, foundFiles, ".sboard");
 	auto isLegal = true;
 	OriginalBoard board;
-
-	for (auto i = 0; i < foundFiles.size(); ++i)
+	int size = static_cast<int>(foundFiles.size());
+	for (auto i = 0; i < size; ++i)
 	{
 		std::string errors = "";
 		isLegal = board.createBoards(foundFiles[i], errors); // TODO - integrate with Tiana
@@ -75,7 +75,7 @@ bool TournamentManager::initBoardsVector(std::vector<std::string>& allFilesInDir
 			auto errorsVector = Util::split(errors, '\n');
 			for (auto error : errorsVector)
 			{
-				LOGGER->Log("%s : %s ", (isLegal) ? "Warning": "ERROR", error.c_str());
+				LOGGER->Log("%s : %s ", (isLegal) ? "Warning" : "ERROR", error.c_str());
 			}
 		}
 	}
@@ -94,24 +94,24 @@ void TournamentManager::startTournament() const
 	std::cout << "Number of legal players: " << dll_vec.size() << std::endl;
 	std::cout << "Number of legal boards: " << boardsVector.size() << std::endl;
 
-/*	// Create the players unique-ptr vector: 
+	/*	// Create the players unique-ptr vector:
 	// unique_ptr<IBattleshipGameAlgo> playerA = unique_ptr<IBattleShipGameAlgo> playerA(algofunc());
-       
+
 
 	createNaiveTournamentSchedule();
 	// Start the scores thread
-	        
+
 
 	//Start the Games Threads
-//	while(tournamentSchedule.size() > 0)
-//	{
-		
-//	}
+	//	while(tournamentSchedule.size() > 0)
+	//	{
 
-//	// Initiating the gameManager
+	//	}
+
+	//	// Initiating the gameManager
 	GameManager gameManager(dll_vec[0], dll_vec[1], boardsVector[0]);
 	GameResult gameResult = gameManager.runGame();
-*/
+	*/
 }
 
 
@@ -138,12 +138,12 @@ bool TournamentManager::findDllFile(WIN32_FIND_DATAA& fileData, HINSTANCE& hDll,
 
 void TournamentManager::createNaiveTournamentSchedule()
 {
-	
-	for (auto i = 0; i < dll_vec.size(); ++i ) // first players
+	int size = static_cast<int>(dll_vec.size());
+	for (auto i = 0; i < size; ++i) // first players
 	{
-		for (auto j = 0; j<dll_vec.size(); ++j )
+		for (auto j = 0; j < size; ++j)
 		{
-			for (auto k = 0; k<boardsVector.size(); ++k )
+			for (auto k = 0; k < static_cast<int>(boardsVector.size()); ++k)
 			{
 				if (i == j)
 					continue;
@@ -152,7 +152,7 @@ void TournamentManager::createNaiveTournamentSchedule()
 			}
 		}
 	}
-	
+
 	std::cout << "Number of games: " << tournamentSchedule.size() << std::endl;
 
 }

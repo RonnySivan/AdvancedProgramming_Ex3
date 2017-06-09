@@ -102,6 +102,41 @@ void TournamentManager::setDefaultArgs()
 	CLogger::GetLogger()->Log("Warning: The file <%s> doesn't contain a valid argument for -thread parameter:", configFile);
 }
 
+void TournamentManager::print_scores(std::vector<std::tuple<std::string, int, int, double, int, int>> scores)
+{
+	std::string name;
+	int win, losses, pts_for, pts_against;
+	double percent;
+
+	// find max name length for column width
+	auto it = std::max_element(scores.begin(), scores.end(), [](auto const &t1, auto const &t2) {
+		return std::get<0>(t1) > std::get<0>(t2);
+	});
+	int max_name_size = std::get<0>(*it).length();
+
+	// sort according to highest percent of wins
+	std::sort(begin(scores), end(scores), [](auto const &t1, auto const &t2) {
+		return std::get<3>(t1) > std::get<3>(t2);
+	});
+
+	// print headlines
+	std::cout << "#\t" << std::left << std::setw(max_name_size + 2) << "Team Name" << "\tWins\tLosses\t%\tPts For\tPts Against" << std::endl;
+
+	// print results
+	for (size_t i = 1; i <= scores.size(); i++)
+	{
+		std::tie(name, win, losses, percent, pts_for, pts_against) = scores[i - 1];
+		std::cout << i << ".\t"
+			<< std::left << std::setw(max_name_size + 2) << name
+			<< "\t" << win
+			<< "\t" << losses
+			<< "\t" << percent
+			<< "\t" << pts_for
+			<< "\t" << pts_against
+			<< std::endl;
+	}
+}
+
 
 bool TournamentManager::findBoardAndDlls()
 {

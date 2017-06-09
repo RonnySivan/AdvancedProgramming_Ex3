@@ -5,6 +5,8 @@
 #include "Logger.h"
 #include "OriginalBoard.h"
 #include <memory>
+#include <iomanip> // for print_scores
+#include <algorithm> // for print_scores
 
 #define DEFAULT_THREADS_NUM 4
 
@@ -45,6 +47,13 @@ class TournamentManager
 	* returns true iff succedded
 	*/
 	void setDefaultArgs();
+
+
+	/**
+	 * \brief prints tournament's scores according to the required format
+	 * \param scores vector holding the scores in the following tuple format: Team Name, Wins, Losses, %, Pts For, Pts Against
+	 */
+	void print_scores(std::vector< std::tuple< std::string, int, int, double, int, int > > scores);
 
 public:
 	/* Constructor

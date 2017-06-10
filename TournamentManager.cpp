@@ -240,28 +240,6 @@ bool TournamentManager::findDllFile(WIN32_FIND_DATAA& fileData, HINSTANCE& hDll,
 }
 
 
-void TournamentManager::createNaiveTournamentSchedule()
-{
-	auto size = static_cast<int>(dll_vec.size());
-	for (auto i = 0; i < size; ++i) // first players
-	{
-		for (auto j = 0; j < size; ++j)
-		{
-			for (auto k = 0; k < static_cast<int>(boardsVector.size()); ++k)
-			{
-				if (i == j)
-					continue;
-
-				tournamentSchedule.push_back(std::make_tuple(i, j, k));
-			}
-		}
-	}
-
-	std::cout << "Number of games: " << tournamentSchedule.size() << std::endl;
-
-}
-
-
 void TournamentManager::print_scores(std::vector<std::tuple<std::string, int, int, double, int, int>> scores) const
 {
 	std::string name;
@@ -299,7 +277,7 @@ void TournamentManager::print_scores(std::vector<std::tuple<std::string, int, in
 
 void TournamentManager::updateScoreBalance(int playerIdFirst, int PlayerIdSecond, GameResult gameResult)
 {
-	m_mutex.lock();
+	m_scoreBalanceMutex.lock();
 	// update the Wins & Losses cols
 	(gameResult.winnerId == 0) ? std::get<1>(scoreBalance[playerIdFirst])++ : std::get<2>(scoreBalance[playerIdFirst])++;
 	(gameResult.winnerId == 1) ? std::get<1>(scoreBalance[PlayerIdSecond])++ : std::get<2>(scoreBalance[PlayerIdSecond])++;
@@ -315,5 +293,5 @@ void TournamentManager::updateScoreBalance(int playerIdFirst, int PlayerIdSecond
 	std::get<4>(scoreBalance[PlayerIdSecond]) += gameResult.scorePlayerB;
 	std::get<5>(scoreBalance[PlayerIdSecond]) += gameResult.scorePlayerA;
 	
-	m_mutex.unlock();
+	m_scoreBalanceMutex.unlock();
 }

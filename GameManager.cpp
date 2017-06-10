@@ -22,6 +22,7 @@ GameManager::GameManager(IBattleshipGameAlgo* playerA_, IBattleshipGameAlgo* pla
 
 }
 
+
 GameManager::~GameManager()
 {
 	// empty d'tor
@@ -45,7 +46,11 @@ GameResult GameManager::runGame()
 	/* Create a GameResult Object to return to the Tournament Manager */
 	gameResult.scorePlayerA = m_scorePlayerA;
 	gameResult.scorePlayerB = m_scorePlayerB;
-	gameResult.winnerId = (numOfShipsA == 0) ? PLAYER_B : PLAYER_A;
+	if (numOfShipsA == 0)
+		gameResult.winnerId = PLAYER_B;
+	else if (numOfShipsB == 0)
+		gameResult.winnerId = PLAYER_A;
+	else gameResult.winnerId = 2;
 
 	return gameResult;
 }

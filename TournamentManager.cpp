@@ -1,7 +1,7 @@
 ﻿#include "TournamentManager.h"
 
 TournamentManager::TournamentManager() :
-	m_threads(DEFAULT_THREADS_NUM), m_path("")
+	m_path(""), m_threads(DEFAULT_THREADS_NUM)
 {
 	CLogger::GetLogger()->Log("The program began running!");
 }
@@ -10,11 +10,8 @@ TournamentManager::~TournamentManager()
 {
 	CLogger::CloseLogger();
 
-	// Iterator to iterate over dll's vector
-	std::vector<std::tuple<std::string, HINSTANCE, GetPlayerFuncType>>::iterator dll_vec_itr;
-
 	// Delete the dll vector
-	for (dll_vec_itr = dll_vec.begin(); dll_vec_itr != dll_vec.end(); ++dll_vec_itr)
+	for (auto dll_vec_itr = dll_vec.begin(); dll_vec_itr != dll_vec.end(); ++dll_vec_itr)
 	{
 		FreeLibrary(std::get<1>(*dll_vec_itr));
 	}
@@ -62,7 +59,6 @@ bool TournamentManager::initTournament(int argc, char* argv[])
 	return true;
 }
 
-
 void TournamentManager::setDefaultArgs()
 {
 	auto configFile = Util::findSuffix(m_allFilesInDir, ".config", 1);
@@ -101,8 +97,6 @@ void TournamentManager::setDefaultArgs()
 	CLogger::GetLogger()->Log("Warning: The *config file <%s> doesn't contain a valid argument for -thread parameter", 
 								configFile.c_str());
 }
-
-
 
 bool TournamentManager::findBoardAndDlls()
 {
@@ -157,7 +151,6 @@ bool TournamentManager::initDllsVector() {
 	return true;
 }
 
-
 bool TournamentManager::initBoardsVector()
 {
 	std::vector<std::string> foundFiles;
@@ -205,26 +198,21 @@ void TournamentManager::startTournament()
 		m_threads = DEFAULT_THREADS_NUM;
 	}
 
-	/* Start One Game */ /*TODO - DEBUG*/
+	/* Create the scoreBalance chart */
+	for (auto player: dll_vec)
+	{
+		auto fileName = std::get<0>(player);
+		scoreBalance.push_back(std::make_tuple(fileName , 0, 0, 0.0, 0, 0));
+	}
+
+	/* Start One Game */
 	GameManager gameManager(playersVector[0].get(), playersVector[1].get(), boardsVector[0]);
 	auto gameResult = gameManager.runGame();
 
+	/* Update the score chart and Print the result */
+	updateScoreBalance( 0, 1, gameResult);
+	print_scores(scoreBalance);
 
-	/*
-	createNaiveTournamentSchedule();
-	// Start the scores thread
-
-
-	//Start the Games Threads
-	//	while(tournamentSchedule.size() > 0)
-	//	{
-
-	//	}
-
-	//	// Initiating the gameManager
-	GameManager gameManager(dll_vec[0], dll_vec[1], boardsVector[0]);
-	GameResult gameResult = gameManager.runGame();
-	*/
 }
 
 
@@ -274,7 +262,7 @@ void TournamentManager::createNaiveTournamentSchedule()
 }
 
 
-void TournamentManager::print_scores(std::vector<std::tuple<std::string, int, int, double, int, int>> scores)
+void TournamentManager::print_scores(std::vector<std::tuple<std::string, int, int, double, int, int>> scores) const
 {
 	std::string name;
 	int win, losses, pts_for, pts_against;
@@ -307,4 +295,25 @@ void TournamentManager::print_scores(std::vector<std::tuple<std::string, int, in
 			<< "\t" << pts_against
 			<< std::endl;
 	}
+}
+
+void TournamentManager::updateScoreBalance(int playerIdFirst, int PlayerIdSecond, GameResult gameResult)
+{
+	m_mutex.lock();
+	// update the Wins & Losses cols
+	(gameResult.winnerId == 0) ? std::get<1>(scoreBalance[playerIdFirst])++ : std::get<2>(scoreBalance[playerIdFirst])++;
+	(gameResult.winnerId == 1) ? std::get<1>(scoreBalance[PlayerIdSecond])++ : std::get<2>(scoreBalance[PlayerIdSecond])++;
+
+	// Update the % col
+	std::get<3>(scoreBalance[playerIdFirst]) = (std::get<1>(scoreBalance[playerIdFirst]) / (std::get<1>(scoreBalance[playerIdFirst]) + std::get<2>(scoreBalance[playerIdFirst]))) * 100;
+	std::get<3>(scoreBalance[PlayerIdSecond]) = (std::get<1>(scoreBalance[PlayerIdSecond]) / (std::get<1>(scoreBalance[PlayerIdSecond]) + std::get<2>(scoreBalance[PlayerIdSecond]))) * 100;
+
+	// update the Pts For & Pts Against cols
+	std::get<4>(scoreBalance[playerIdFirst]) += gameResult.scorePlayerA;
+	std::get<5>(scoreBalance[playerIdFirst]) += gameResult.scorePlayerB;
+
+	std::get<4>(scoreBalance[PlayerIdSecond]) += gameResult.scorePlayerB;
+	std::get<5>(scoreBalance[PlayerIdSecond]) += gameResult.scorePlayerA;
+	
+	m_mutex.unlock();
 }

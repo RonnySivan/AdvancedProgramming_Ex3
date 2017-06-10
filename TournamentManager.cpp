@@ -22,7 +22,7 @@ TournamentManager::~TournamentManager()
 
 bool TournamentManager::initTournament(int argc, char* argv[])
 {
-	bool givenThreads = false;
+	auto givenThreads = false;
 
 	for (auto i = 1; i < argc; ++i)
 	{
@@ -51,8 +51,8 @@ bool TournamentManager::initTournament(int argc, char* argv[])
 	m_path = Util::findAbsPath(m_path.c_str());
 	if (! Util::findFiles(m_path, m_allFilesInDir))
 	{
-		CLogger::GetLogger()->Log("Error: Wrong path: <%s>", m_path.c_str());
-		std::cout << "Error: Wrong path: <" << m_path << ">" << std::endl;
+		CLogger::GetLogger()->Log("Error: Wrong path: %s", m_path.c_str());
+		std::cout << "Error: Wrong path: " << m_path << std::endl;
 		return false;
 	}
 	if (! givenThreads) {
@@ -65,22 +65,22 @@ bool TournamentManager::initTournament(int argc, char* argv[])
 
 void TournamentManager::setDefaultArgs()
 {
-	std::string configFile = Util::findSuffix(m_allFilesInDir, ".config", 1);
+	auto configFile = Util::findSuffix(m_allFilesInDir, ".config", 1);
 	if (configFile.compare("") == 0) {
-		CLogger::GetLogger()->Log("Warning: *.config file is missing from path: <%s>", m_path.c_str());
+		CLogger::GetLogger()->Log("Warning: *.config file is missing from path: %s", m_path.c_str());
 		return;
 	}
 	std::string line;
 	std::ifstream fin(configFile);
 
 	if (!fin.is_open()) {
-		CLogger::GetLogger()->Log("Warning: Couldn't open file: <%s>, in path: <%s>", 
+		CLogger::GetLogger()->Log("Warning: Couldn't open file: <%s>, in path: %s", 
 									configFile.c_str(), m_path.c_str());
 		return;
 	}
 	while (getline(fin, line))
 	{
-		std::vector<std::string> tokens = Util::split(line, ' ');
+		auto tokens = Util::split(line, ' ');
 		if (tokens.size() < 2)
 		{
 			continue;
@@ -140,9 +140,9 @@ void TournamentManager::print_scores(std::vector<std::tuple<std::string, int, in
 
 bool TournamentManager::findBoardAndDlls()
 {
-	std::string fileBoard = Util::findSuffix(m_allFilesInDir, ".sboard", 1);
-	std::string fileDll1 = Util::findSuffix(m_allFilesInDir, ".dll", 1);
-	std::string fileDll2 = Util::findSuffix(m_allFilesInDir, ".dll", 2);
+	auto fileBoard = Util::findSuffix(m_allFilesInDir, ".sboard", 1);
+	auto fileDll1 = Util::findSuffix(m_allFilesInDir, ".dll", 1);
+	auto fileDll2 = Util::findSuffix(m_allFilesInDir, ".dll", 2);
 
 	if (fileBoard.compare("") == 0) {
 		CLogger::GetLogger()->Log("Error: No board files (*.sboard) looking in path: <%s>", m_path.c_str());
@@ -163,7 +163,7 @@ bool TournamentManager::findBoardAndDlls()
 bool TournamentManager::initDllsVector() {
 	WIN32_FIND_DATAA fileData; //data struct for file
 
-	HANDLE dir = FindFirstFileA((m_path + "\\*.dll").c_str(), &fileData);
+	auto dir = FindFirstFileA((m_path + "\\*.dll").c_str(), &fileData);
 	if (dir != INVALID_HANDLE_VALUE) //check if the dir opened successfully
 	{
 		do
@@ -178,7 +178,6 @@ bool TournamentManager::initDllsVector() {
 	}
 	else {
 		CLogger::GetLogger()->Log("Error: Can't open dir to get Algorithm (dll) files from");
-		std::cout << "Can't open dir to get Algorithm (dll) files from " << std::endl;
 		return false;
 	}
 
@@ -198,11 +197,12 @@ bool TournamentManager::initBoardsVector()
 	std::vector<std::string> foundFiles;
 	Util::findAllFilesWithSuffix(m_allFilesInDir, foundFiles, ".sboard");
 	auto isLegal = true;
-	int size = static_cast<int>(foundFiles.size());
+	auto size = static_cast<int>(foundFiles.size());
+
 	for (auto i = 0; i < size; ++i)
 	{
 		std::string errors = "";
-		std::shared_ptr<OriginalBoard> board = std::make_shared<OriginalBoard>();
+		auto board = std::make_shared<OriginalBoard>();
 		isLegal = (board.get())->createBoards(foundFiles[i], errors);
 
 		if (isLegal)
@@ -277,7 +277,7 @@ bool TournamentManager::findDllFile(WIN32_FIND_DATAA& fileData, HINSTANCE& hDll,
 
 void TournamentManager::createNaiveTournamentSchedule()
 {
-	int size = static_cast<int>(dll_vec.size());
+	auto size = static_cast<int>(dll_vec.size());
 	for (auto i = 0; i < size; ++i) // first players
 	{
 		for (auto j = 0; j < size; ++j)

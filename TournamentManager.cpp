@@ -206,7 +206,7 @@ void TournamentManager::startTournament()
 	}
 
 	/* Start One Game */ /*TODO - DEBUG*/
-	GameManager gameManager(std::make_pair(playersVector[0], playersVector[1]), boardsVector[0]);
+	GameManager gameManager(playersVector[0].get(), playersVector[1].get(), boardsVector[0]);
 	auto gameResult = gameManager.runGame();
 
 

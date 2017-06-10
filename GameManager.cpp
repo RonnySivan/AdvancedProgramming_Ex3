@@ -1,12 +1,9 @@
 #include "GameManager.h"
 
 
-GameManager::GameManager(std::pair<std::unique_ptr<IBattleshipGameAlgo>, std::unique_ptr<IBattleshipGameAlgo>> players, std::shared_ptr<OriginalBoard> originalBoard) :
-	gameBoard(originalBoard), numOfShipsA(5), numOfShipsB(5), hasMoreMovesA(true), hasMoreMovesB(true), m_scorePlayerA(0), m_scorePlayerB(0)
+GameManager::GameManager(IBattleshipGameAlgo* playerA, IBattleshipGameAlgo* playerB, std::shared_ptr<OriginalBoard> originalBoard) :
+	gameBoard(originalBoard), playerA(playerA), playerB(playerB), numOfShipsA(5), numOfShipsB(5), hasMoreMovesA(true), hasMoreMovesB(true), m_scorePlayerA(0), m_scorePlayerB(0)
 {
-	/* Initiaize players */
-	playerA = (players.first.get());
-	playerB = (players.second.get());
 
 	/* Notify the Players what is their Id */
 	playerA->setPlayer(PLAYER_A);

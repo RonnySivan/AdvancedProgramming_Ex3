@@ -71,7 +71,7 @@ public:
 	/* Constructor
 	* initializes all fields
 	*/
-	GameManager(std::pair<std::unique_ptr<IBattleshipGameAlgo>, std::unique_ptr<IBattleshipGameAlgo>> players, std::shared_ptr<OriginalBoard> originalBoard);
+	GameManager(IBattleshipGameAlgo* playerA, IBattleshipGameAlgo* playerB, std::shared_ptr<OriginalBoard> originalBoard);
 
 	/*destructor for GameManager
 	*/

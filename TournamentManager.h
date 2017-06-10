@@ -3,8 +3,10 @@
 #include "GameManager.h"
 #include "Logger.h"
 
-#include <thread>
-#include <mutex>
+#include <thread> //for threads management
+#include <mutex> //for threads management
+#include <condition_variable> //for threads management
+#include <deque> //for threads management
 #include <memory>
 #include <iomanip> // for print_scores
 #include <algorithm> // for print_scores

@@ -38,10 +38,10 @@ std::pair<AttackResult, int> GameBoard::checkAttackResult(Coordinate attackMove)
 		return std::make_pair(AttackResult::Hit, 2); // attacked ship who hasn't sank yet, in a place attacked already
 
 	if (symbol == 'B' || symbol == 'P' || symbol == 'M' || symbol == 'D')
-		return std::make_pair(AttackResult::Hit, 1); // B got hit
+		return std::make_pair(AttackResult::Hit, 0); // A got hit
 
 	if (symbol == 'b' || symbol == 'p' || symbol == 'm' || symbol == 'd')
-		return std::make_pair(AttackResult::Hit, 1); //  A got hit
+		return std::make_pair(AttackResult::Hit, 1); //  B got hit
 
 	//shouldn't reack this line
 	return std::make_pair(AttackResult::Miss, 2);

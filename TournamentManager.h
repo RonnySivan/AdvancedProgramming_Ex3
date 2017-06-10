@@ -1,10 +1,9 @@
 #pragma once
 #include "Util.h"
-#include "iBattleShipGameAlgo.h"
 #include "GameManager.h"
 #include "Logger.h"
 
-
+#include "thread"
 #include <memory>
 #include <iomanip> // for print_scores
 #include <algorithm> // for print_scores

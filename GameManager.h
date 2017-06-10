@@ -1,8 +1,5 @@
 #pragma once
-#include "IBattleshipGameAlgo.h"
-#include "BattleShip.h"
 #include "GameBoard.h"
-#
 #include "PlayerBoard.h"
 
 #include <vector>

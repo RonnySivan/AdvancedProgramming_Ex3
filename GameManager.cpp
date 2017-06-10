@@ -1,8 +1,8 @@
 #include "GameManager.h"
 
 
-GameManager::GameManager(IBattleshipGameAlgo* playerA, IBattleshipGameAlgo* playerB, std::shared_ptr<OriginalBoard> originalBoard) :
-	gameBoard(originalBoard), playerA(playerA), playerB(playerB), numOfShipsA(5), numOfShipsB(5), hasMoreMovesA(true), hasMoreMovesB(true), m_scorePlayerA(0), m_scorePlayerB(0)
+GameManager::GameManager(IBattleshipGameAlgo* playerA_, IBattleshipGameAlgo* playerB_, std::shared_ptr<OriginalBoard> originalBoard) :
+	gameBoard(originalBoard), playerA(playerA_), playerB(playerB_), numOfShipsA(5), numOfShipsB(5), hasMoreMovesA(true), hasMoreMovesB(true), m_scorePlayerA(0), m_scorePlayerB(0)
 {
 
 	/* Notify the Players what is their Id */
@@ -24,7 +24,7 @@ GameManager::GameManager(IBattleshipGameAlgo* playerA, IBattleshipGameAlgo* play
 
 GameManager::~GameManager()
 {
-	// todo - empty dtor? 
+	// empty d'tor
 }
 
 
@@ -81,7 +81,7 @@ int GameManager::runPlayer(int playerId)
 }
 
 
-bool GameManager::attackCoordinateLegal(Coordinate attackCoordinate) { // TODO - resharper message
+bool GameManager::attackCoordinateLegal(Coordinate attackCoordinate) const {
 	if (attackCoordinate.row > 0 && attackCoordinate.row <= gameBoard.rows() &&
 	attackCoordinate.col > 0 && attackCoordinate.col <= gameBoard.cols() &&
 	attackCoordinate.depth > 0 && attackCoordinate.depth <= gameBoard.depth())
@@ -130,7 +130,6 @@ int GameManager::analyzeLegalAttack(int playerId, int turn, std::pair<AttackResu
 }
 
 
-
 AttackResult GameManager::checkHitResult(int playerId, Coordinate attackMove, std::vector<BattleShip> &battleShips) {
 	auto res = AttackResult::Hit;
 
@@ -154,6 +153,7 @@ AttackResult GameManager::checkHitResult(int playerId, Coordinate attackMove, st
 
 	return res;
 }
+
 
 void GameManager::updateSinkShipInBoard(int playerID, BattleShip& battleShip) {
 	for (auto i = 0; i < battleShip.getLocations().size(); i++)

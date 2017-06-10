@@ -18,7 +18,7 @@ class TournamentManager
 	std::string m_path;
 	std::vector<std::string> m_allFilesInDir;
 	int m_threads;
-	std::mutex m_mutex;
+	std::mutex m_scoreBalanceMutex;
 
 	std::vector<std::shared_ptr<OriginalBoard>> boardsVector;
 	std::vector<std::unique_ptr<IBattleshipGameAlgo>> playersVector;
@@ -43,12 +43,10 @@ class TournamentManager
 	bool findDllFile(WIN32_FIND_DATAA& fileData, HINSTANCE& hDll, std::string& fullFileName);
 
 
-	/*
+	/* TODO
 	 * create the tournament schedule - according num of players and boards.
-	 * each player will play agaunst all other players, on each board - TWICE (switch positions)!
+	 * each player will play against all other players, on each board - TWICE (switch positions)!
 	 */
-	void createNaiveTournamentSchedule();
-
 
 	/*
 	* gets the names of all the files in the path given and extracts the default parameters from config file

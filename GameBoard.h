@@ -31,7 +31,7 @@ public:
 	recieves an attack move indexes
 	and check in the game total board if some ship had been attacked
 	return the proper AttackResult (Hit, Miss, Sink)
-	and the ID of the player that it's ship eas Hitted\Sink
+	and the ID of the player that it's ship was Hitted\Sink
 	(player ID 2 for Miss )
 	*/
 	std::pair<AttackResult, int> checkAttackResult(Coordinate attackMove) const;

@@ -102,40 +102,6 @@ void TournamentManager::setDefaultArgs()
 								configFile.c_str());
 }
 
-void TournamentManager::print_scores(std::vector<std::tuple<std::string, int, int, double, int, int>> scores)
-{
-	std::string name;
-	int win, losses, pts_for, pts_against;
-	double percent;
-
-	// find max name length for column width
-	auto it = std::max_element(scores.begin(), scores.end(), [](auto const &t1, auto const &t2) {
-		return std::get<0>(t1) > std::get<0>(t2);
-	});
-	int max_name_size = std::get<0>(*it).length();
-
-	// sort according to highest percent of wins
-	std::sort(begin(scores), end(scores), [](auto const &t1, auto const &t2) {
-		return std::get<3>(t1) > std::get<3>(t2);
-	});
-
-	// print headlines
-	std::cout << "#\t" << std::left << std::setw(max_name_size + 2) << "Team Name" << "\tWins\tLosses\t%\tPts For\tPts Against" << std::endl;
-
-	// print results
-	for (size_t i = 1; i <= scores.size(); i++)
-	{
-		std::tie(name, win, losses, percent, pts_for, pts_against) = scores[i - 1];
-		std::cout << i << ".\t"
-			<< std::left << std::setw(max_name_size + 2) << name
-			<< "\t" << win
-			<< "\t" << losses
-			<< "\t" << percent
-			<< "\t" << pts_for
-			<< "\t" << pts_against
-			<< std::endl;
-	}
-}
 
 
 bool TournamentManager::findBoardAndDlls()
@@ -233,10 +199,12 @@ void TournamentManager::startTournament() const
 	std::cout << "Number of legal players: " << dll_vec.size() << std::endl;
 	std::cout << "Number of legal boards: " << boardsVector.size() << std::endl;
 
-	/*	// Create the players unique-ptr vector:
-	// unique_ptr<IBattleshipGameAlgo> playerA = unique_ptr<IBattleShipGameAlgo> playerA(algofunc());
+	/* Start One Game */ /*TODO - DEBUG*/
+	GameManager gameManager(std::make_pair(playersVector[0], playersVector[1]), boardsVector[0]);
+	auto gameResult = gameManager.runGame();
 
 
+	/*
 	createNaiveTournamentSchedule();
 	// Start the scores thread
 
@@ -271,9 +239,12 @@ bool TournamentManager::findDllFile(WIN32_FIND_DATAA& fileData, HINSTANCE& hDll,
 		return false;
 
 	dll_vec.push_back(std::make_tuple(playerName, hDll, getPlayerFunc));
+	std::unique_ptr<IBattleshipGameAlgo> player(std::get<2>(dll_vec.back())());
+	playersVector.push_back(std::move(player));
 
 	return true;
 }
+
 
 void TournamentManager::createNaiveTournamentSchedule()
 {
@@ -294,4 +265,40 @@ void TournamentManager::createNaiveTournamentSchedule()
 
 	std::cout << "Number of games: " << tournamentSchedule.size() << std::endl;
 
+}
+
+
+void TournamentManager::print_scores(std::vector<std::tuple<std::string, int, int, double, int, int>> scores)
+{
+	std::string name;
+	int win, losses, pts_for, pts_against;
+	double percent;
+
+	// find max name length for column width
+	auto it = std::max_element(scores.begin(), scores.end(), [](auto const &t1, auto const &t2) {
+		return std::get<0>(t1) > std::get<0>(t2);
+	});
+	int max_name_size = std::get<0>(*it).length();
+
+	// sort according to highest percent of wins
+	std::sort(begin(scores), end(scores), [](auto const &t1, auto const &t2) {
+		return std::get<3>(t1) > std::get<3>(t2);
+	});
+
+	// print headlines
+	std::cout << "#\t" << std::left << std::setw(max_name_size + 2) << "Team Name" << "\tWins\tLosses\t%\tPts For\tPts Against" << std::endl;
+
+	// print results
+	for (size_t i = 1; i <= scores.size(); i++)
+	{
+		std::tie(name, win, losses, percent, pts_for, pts_against) = scores[i - 1];
+		std::cout << i << ".\t"
+			<< std::left << std::setw(max_name_size + 2) << name
+			<< "\t" << win
+			<< "\t" << losses
+			<< "\t" << percent
+			<< "\t" << pts_for
+			<< "\t" << pts_against
+			<< std::endl;
+	}
 }

@@ -15,9 +15,11 @@ class TournamentManager
 {
 	std::string m_path;
 	int m_threads;
-	std::vector<std::shared_ptr<OriginalBoard>> boardsVector;
-	std::vector<std::tuple<int , int , int>> tournamentSchedule; // TODO - what is the best way to hold those parameters? does int's are OK?
 	std::vector<std::string> m_allFilesInDir;
+
+	std::vector<std::shared_ptr<OriginalBoard>> boardsVector;
+	std::vector<std::unique_ptr<IBattleshipGameAlgo>> playersVector;
+	std::vector<std::tuple<int , int , int>> tournamentSchedule; // TODO - what is the best way to hold those parameters? does int's are OK?
 
 	// define function of the type we expect from IBattleshipGameAlgo
 	typedef IBattleshipGameAlgo *(*GetPlayerFuncType)();
@@ -48,7 +50,6 @@ class TournamentManager
 	* returns true iff succedded
 	*/
 	void setDefaultArgs();
-
 
 	/**
 	 * \brief prints tournament's scores according to the required format

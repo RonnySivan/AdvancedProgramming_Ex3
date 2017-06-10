@@ -368,6 +368,136 @@ bool SmartPlayer::set_search_and_erase(const Coordinate& val, std::set<Coordinat
 	return false;
 }
 
+
+
+bool SmartPlayer::isLegalSeqHorz(int r, int c, int d, std::vector<Coordinate>& locations)
+{
+	auto len = 0;
+	auto type = m_board->charAt(Coordinate(r, c, d));
+	if (c > 1)
+	{
+		set_search_and_erase(Coordinate(r, c - 1, d), m_potential_attacks);
+	}
+	for (auto k = c; k <= m_board->cols(); k++)
+	{
+		auto cur = m_board->charAt(Coordinate(r, k, d));
+		if (cur != type)
+		{
+			set_search_and_erase(Coordinate(r, k, d), m_potential_attacks);
+			break;
+		}
+		set_search_and_erase(Coordinate(r - 1, k, d), m_potential_attacks);
+		set_search_and_erase(Coordinate(r + 1, k, d), m_potential_attacks);
+		set_search_and_erase(Coordinate(r, k, d - 1), m_potential_attacks);
+		set_search_and_erase(Coordinate(r, k, d + 1), m_potential_attacks);
+		locations.push_back(Coordinate(r, k, d));
+		len++;
+	}
+
+	return BattleShip::isLegalShip(type, len);
+}
+
+
+bool SmartPlayer::isLegalSeqVert(int r, int c, int d, std::vector<Coordinate>& locations)
+{
+	auto len = 0;
+	auto type = m_board->charAt(Coordinate(r, c, d));
+	if (r > 1)
+	{
+		set_search_and_erase(Coordinate(r - 1, c, d), m_potential_attacks);
+	}
+	for (auto k = r; k <= m_board->rows(); k++)
+	{
+		auto cur = m_board->charAt(Coordinate(k, c, d));
+		if (cur != type)
+		{
+			set_search_and_erase(Coordinate(r, c, k), m_potential_attacks);
+			break;
+		}
+		set_search_and_erase(Coordinate(k, c, d - 1), m_potential_attacks);
+		set_search_and_erase(Coordinate(k, c, d + 1), m_potential_attacks);
+		set_search_and_erase(Coordinate(k, c - 1, d), m_potential_attacks);
+		set_search_and_erase(Coordinate(k, c + 1, d), m_potential_attacks);
+		locations.push_back(Coordinate(k, c, k));
+		len++;
+	}
+
+	return BattleShip::isLegalShip(type, len);
+}
+
+
+bool SmartPlayer::isLegalSeqDeep(int r, int c, int d, std::vector<Coordinate>& locations)
+{
+	auto len = 0;
+	auto type = m_board->charAt(Coordinate(r, c, d));
+	if (d > 1)
+	{
+		set_search_and_erase(Coordinate(r, c, d - 1), m_potential_attacks);
+	}
+	for (auto k = d; k <= m_board->depth(); k++)
+	{
+		char cur = m_board->charAt(Coordinate(r, c, k));
+		if (cur != type)
+		{
+			set_search_and_erase(Coordinate(r, c, k), m_potential_attacks);
+			break;
+		}
+		set_search_and_erase(Coordinate(r - 1, c, k), m_potential_attacks);
+		set_search_and_erase(Coordinate(r + 1, c, k), m_potential_attacks);
+		set_search_and_erase(Coordinate(r, c - 1, k), m_potential_attacks);
+		set_search_and_erase(Coordinate(r, c + 1, k), m_potential_attacks);
+		locations.push_back(Coordinate(r, c, k));
+		len++;
+	}
+
+	return BattleShip::isLegalShip(type, len);
+}
+
+
+void SmartPlayer::findShips()
+{
+	for (auto k = 1; k <= m_board->depth(); k++)
+	{
+		for (auto i = 1; i <= m_board->rows(); i++)
+		{
+			for (auto j = 1; j <= m_board->cols(); j++)
+			{
+				auto type = m_board->charAt(Coordinate(i, j, k));
+				if (type == ' ') continue;
+				/*enter <if> only if cell is not empty and
+				*is not part of a sequence that was already checked(from above or left or within)*/
+				if (type != ' ' &&
+					(i == 1 || m_board->charAt(Coordinate(i - 1, j, k)) != type) &&
+					(j == 1 || m_board->charAt(Coordinate(i, j - 1, k)) != type) &&
+					(k == 1 || m_board->charAt(Coordinate(i, j, k - 1)) != type))
+				{
+					std::vector<Coordinate> locV, locH, locD;
+					bool vert = isLegalSeqVert(i, j, k, locV);
+					bool horz = isLegalSeqHorz(i, j, k, locH);
+					bool deep = isLegalSeqDeep(i, j, k, locD);
+					if (!vert)
+					{
+						//legal vert ship!
+						ships.push_back(BattleShip(type, locV));
+						continue;
+					}
+					if (!horz)
+					{
+						//legal horz ship!
+						ships.push_back(BattleShip(type, locH));
+						continue;
+					}
+					if (!deep)
+					{
+						//legal deep ship!
+						ships.push_back(BattleShip(type, locD));
+					}
+				}
+			}
+		}
+	}
+}
+
 IBattleshipGameAlgo* GetAlgorithm()
 {
 	return new SmartPlayer();

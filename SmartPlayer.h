@@ -39,7 +39,7 @@ class SmartPlayer : public IBattleshipGameAlgo
 	 * \param board player's board accepted in setBoard() function, and should be valid
 	 * \param ships vector to hold player's ships
 	 */
-	void findShips(const BoardData& board, std::vector<BattleShip>& ships); // TODO
+	void findShips(); // TODO
 
 	/**
 	 * \brief calculates a random attack move
@@ -132,6 +132,12 @@ class SmartPlayer : public IBattleshipGameAlgo
 	 * \return true if val was found in set, else false
 	 */
 	static bool set_search_and_erase(const Coordinate& val, std::set<Coordinate>& set);
+
+	bool isLegalSeqHorz(int r, int c, int d, std::vector<Coordinate>& locations);
+
+	bool isLegalSeqVert(int r, int c, int d, std::vector<Coordinate>& locations);
+
+	bool isLegalSeqDeep(int r, int c, int d, std::vector<Coordinate>& locations);
 
 public:
 	SmartPlayer();

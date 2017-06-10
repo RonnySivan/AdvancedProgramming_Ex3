@@ -284,7 +284,7 @@ void TournamentManager::print_scores(std::vector<std::tuple<std::string, int, in
 	auto it = std::max_element(scores.begin(), scores.end(), [](auto const &t1, auto const &t2) {
 		return std::get<0>(t1) > std::get<0>(t2);
 	});
-	int max_name_size = std::get<0>(*it).length();
+	size_t max_name_size = std::get<0>(*it).length();
 
 	// sort according to highest percent of wins
 	std::sort(begin(scores), end(scores), [](auto const &t1, auto const &t2) {

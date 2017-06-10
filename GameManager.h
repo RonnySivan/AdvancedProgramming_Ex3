@@ -44,7 +44,7 @@ class GameManager
 	* Check if the indexes that the player tries to attack are legal (in the boards limits)
 	* return a bbolean answer accordingly.
 	*/
-	bool attackCoordinateLegal(Coordinate attackCoordinate);
+	bool attackCoordinateLegal(Coordinate attackCoordinate) const;
 
 	/*
 	* receives legal attack Coordinates
@@ -71,9 +71,9 @@ public:
 	/* Constructor
 	* initializes all fields
 	*/
-	GameManager(IBattleshipGameAlgo* playerA, IBattleshipGameAlgo* playerB, std::shared_ptr<OriginalBoard> originalBoard);
+	GameManager(IBattleshipGameAlgo* playerA_, IBattleshipGameAlgo* playerB_, std::shared_ptr<OriginalBoard> originalBoard);
 
-	/*destructor for GameManager
+	/* Empty destructor for GameManager
 	*/
 	~GameManager();
 

@@ -3,7 +3,8 @@
 #include "GameManager.h"
 #include "Logger.h"
 
-#include "thread"
+#include <thread>
+#include <mutex>
 #include <memory>
 #include <iomanip> // for print_scores
 #include <algorithm> // for print_scores
@@ -99,5 +100,5 @@ public:
 	/**
 	 * start the tournament - print num of players&boards, start the game threads, print the scores status. 
 	 */
-	void startTournament() const;
+	void startTournament();
 };

@@ -194,10 +194,16 @@ bool TournamentManager::initBoardsVector()
 	return true;
 }
 
-void TournamentManager::startTournament() const
+void TournamentManager::startTournament()
 {
 	std::cout << "Number of legal players: " << dll_vec.size() << std::endl;
 	std::cout << "Number of legal boards: " << boardsVector.size() << std::endl;
+
+	if (m_threads <= 0)
+	{
+		CLogger::GetLogger()->Log("Warning: input number of threads (%d) is illegal. Assign it to be the default number (4).", m_threads);
+		m_threads = DEFAULT_THREADS_NUM;
+	}
 
 	/* Start One Game */ /*TODO - DEBUG*/
 	GameManager gameManager(std::make_pair(playersVector[0], playersVector[1]), boardsVector[0]);

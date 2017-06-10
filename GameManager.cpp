@@ -2,12 +2,15 @@
 
 
 GameManager::GameManager(std::pair<std::unique_ptr<IBattleshipGameAlgo>, std::unique_ptr<IBattleshipGameAlgo>> players, std::shared_ptr<OriginalBoard> originalBoard) :
-	gameBoard(originalBoard),/* TODO - initialize players: playerA(players.first), playerB(players.second), */numOfShipsA(5), numOfShipsB(5), hasMoreMovesA(true), hasMoreMovesB(true), m_scorePlayerA(0), m_scorePlayerB(0)
+	gameBoard(originalBoard), numOfShipsA(5), numOfShipsB(5), hasMoreMovesA(true), hasMoreMovesB(true), m_scorePlayerA(0), m_scorePlayerB(0)
 {
+	/* Initiaize players */
+	playerA = (players.first.get());
+	playerB = (players.second.get());
 
 	/* Notify the Players what is their Id */
-	players.first->setPlayer(PLAYER_A);
-	players.second->setPlayer(PLAYER_B);
+	playerA->setPlayer(PLAYER_A);
+	playerB->setPlayer(PLAYER_B);
 
 	/* Set the Game and the Players boards */
 	PlayerBoard playerBoardA(PLAYER_A, originalBoard);

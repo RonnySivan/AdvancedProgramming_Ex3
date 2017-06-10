@@ -23,8 +23,8 @@ struct GameResult
 class GameManager
 {
 	GameBoard gameBoard;
-	std::unique_ptr<IBattleshipGameAlgo> playerA;
-	std::unique_ptr<IBattleshipGameAlgo> playerB;
+	IBattleshipGameAlgo* playerA;
+	IBattleshipGameAlgo* playerB;
 	std::vector<BattleShip> battleShipsA;
 	std::vector<BattleShip> battleShipsB;
 	int numOfShipsA;

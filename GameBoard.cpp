@@ -7,6 +7,7 @@ GameBoard::GameBoard(std::shared_ptr<OriginalBoard> originalBoard) : _originalBo
 	_depth = (_originalBoard.get())->depth();
 }
 
+
 char GameBoard::charAt(Coordinate c) const {
 	auto cur = _updatedBoard.find(c);
 	if (cur != _updatedBoard.end())
@@ -15,6 +16,7 @@ char GameBoard::charAt(Coordinate c) const {
 	}
 	return _originalBoard->charAt(c);
 }
+
 
 void GameBoard::setSymbol(Coordinate attackIndexes, char newSymbol)
 {

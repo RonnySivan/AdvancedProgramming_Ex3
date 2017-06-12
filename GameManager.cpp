@@ -1,20 +1,20 @@
 #include "GameManager.h"
 
 
-GameManager::GameManager(IBattleshipGameAlgo* playerA_, IBattleshipGameAlgo* playerB_, std::shared_ptr<OriginalBoard> originalBoard) :
-	gameBoard(originalBoard), playerA(playerA_), playerB(playerB_), numOfShipsA(5), numOfShipsB(5), hasMoreMovesA(true), hasMoreMovesB(true), m_scorePlayerA(0), m_scorePlayerB(0)
+GameManager::GameManager(std::unique_ptr<IBattleshipGameAlgo> playerA_, std::unique_ptr<IBattleshipGameAlgo> playerB_, std::shared_ptr<OriginalBoard> originalBoard) :
+	gameBoard(originalBoard), playerA(std::move(playerA_)), playerB(std::move(playerB_)), numOfShipsA(5), numOfShipsB(5), hasMoreMovesA(true), hasMoreMovesB(true), m_scorePlayerA(0), m_scorePlayerB(0)
 {
 
 	/* Notify the Players what is their Id */
-	playerA->setPlayer(PLAYER_A);
-	playerB->setPlayer(PLAYER_B);
+	(playerA.get())->setPlayer(PLAYER_A);
+	(playerB.get())->setPlayer(PLAYER_B);
 
 	/* Set the Game and the Players boards */
 	PlayerBoard playerBoardA(PLAYER_A, originalBoard);
 	PlayerBoard playerBoardB(PLAYER_B, originalBoard);
 
-	playerA->setBoard(playerBoardA);
-	playerB->setBoard(playerBoardB);
+	(playerA.get())->setBoard(playerBoardA);
+	(playerB.get())->setBoard(playerBoardB);
 
 	/* Set battleShipsA and battleShipsB */
 	gameBoard.getBattleShips(battleShipsA, PLAYER_A);
@@ -60,7 +60,7 @@ GameResult GameManager::runGame()
 int GameManager::runPlayer(int playerId)
 {
 	auto turn = playerId;
-	auto attackCoordinate = (playerId) ? playerB->attack() : playerA->attack() ;
+	auto attackCoordinate = (playerId) ? (playerB.get())->attack() : (playerA.get())->attack() ;
 
 	// End of moves for player
 	if (attackCoordinate.row == -1 && attackCoordinate.col == -1 && attackCoordinate.depth == -1)
@@ -78,8 +78,8 @@ int GameManager::runPlayer(int playerId)
 	std::pair<AttackResult, int> attackResAndPlayer = gameBoard.checkAttackResult(attackCoordinate);
 	turn = analyzeLegalAttack(playerId, turn, attackResAndPlayer, attackCoordinate);
 
-	playerA->notifyOnAttackResult(playerId, attackCoordinate, attackResAndPlayer.first);
-	playerB->notifyOnAttackResult(playerId, attackCoordinate, attackResAndPlayer.first);
+	(playerA.get())->notifyOnAttackResult(playerId, attackCoordinate, attackResAndPlayer.first);
+	(playerB.get())->notifyOnAttackResult(playerId, attackCoordinate, attackResAndPlayer.first);
 
 	return turn;
 
@@ -95,7 +95,7 @@ bool GameManager::attackCoordinateLegal(Coordinate attackCoordinate) const {
 }
 
 
-int GameManager::analyzeLegalAttack(int playerId, int turn, std::pair<AttackResult, int>& attackResAndPlayer, Coordinate& attackCoordinates)
+int GameManager::analyzeLegalAttack(int playerId, int turn, std::pair<AttackResult, int>& attackResAndPlayer, Coordinate attackCoordinates)
 {
 	// player attack Missed.
 	if (attackResAndPlayer.first == AttackResult::Miss)

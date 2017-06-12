@@ -12,7 +12,7 @@ std::string Util::concatenateAbsolutePath(const std::string& dirPath, const std:
 
 std::string Util::findAbsPath(const char* relativePath) {
 	char full[MAX_ABS_PATH];
-	if (_fullpath(full, relativePath, MAX_ABS_PATH) != NULL)
+	if (_fullpath(full, relativePath, MAX_ABS_PATH) != nullptr)
 		return full;
 	return relativePath;
 }

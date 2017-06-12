@@ -20,8 +20,8 @@ struct GameResult
 class GameManager
 {
 	GameBoard gameBoard;
-	IBattleshipGameAlgo* playerA;
-	IBattleshipGameAlgo* playerB;
+	std::unique_ptr<IBattleshipGameAlgo> playerA;
+	std::unique_ptr<IBattleshipGameAlgo> playerB;
 	std::vector<BattleShip> battleShipsA;
 	std::vector<BattleShip> battleShipsB;
 	int numOfShipsA;
@@ -51,7 +51,7 @@ class GameManager
 	* checks attack result
 	* decides to whom belongs the next turn and returns it
 	*/
-	int GameManager::analyzeLegalAttack(int playerId, int turn, std::pair<AttackResult, int>& attackResAndPlayer, Coordinate& attackCoordinates);
+	int analyzeLegalAttack(int playerId, int turn, std::pair<AttackResult, int>& attackResAndPlayer, Coordinate attackCoordinates);
 
 	/*
 	* When there is a Hit in playerId board, in attackMove Coordinate,
@@ -71,7 +71,7 @@ public:
 	/* Constructor
 	* initializes all fields
 	*/
-	GameManager(IBattleshipGameAlgo* playerA_, IBattleshipGameAlgo* playerB_, std::shared_ptr<OriginalBoard> originalBoard);
+	GameManager(std::unique_ptr<IBattleshipGameAlgo> playerA_, std::unique_ptr<IBattleshipGameAlgo> playerB_, std::shared_ptr<OriginalBoard> originalBoard);
 
 	/* Empty destructor for GameManager
 	*/

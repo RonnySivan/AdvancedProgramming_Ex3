@@ -1,7 +1,7 @@
 ﻿#include "TournamentManager.h"
 
 TournamentManager::TournamentManager() :
-	m_path(""), m_threads(DEFAULT_THREADS_NUM)
+	m_path(""), m_threads(DEFAULT_THREADS_NUM), m_numOfPlayers(0), m_currentRound(0)
 {
 	CLogger::GetLogger()->Log("The program began running!");
 }
@@ -154,7 +154,8 @@ bool TournamentManager::initDllsVector() {
 		return false;
 	}
 
-	if (dll_vec.size() < 2)
+	m_numOfPlayers = static_cast<int>(dll_vec.size());
+	if (m_numOfPlayers < 2)
 	{
 		CLogger::GetLogger()->Log("Error: Missing VALID algorithm (dll) files - needs at least two");
 		std::cout << "Missing VALID algorithm (dll) files - needs at least two" << std::endl;
@@ -202,7 +203,7 @@ bool TournamentManager::initBoardsVector()
 
 void TournamentManager::startTournament()
 {
-	std::cout << "Number of legal players: " << dll_vec.size() << std::endl;
+	std::cout << "Number of legal players: " << m_numOfPlayers << std::endl;
 	std::cout << "Number of legal boards: " << boardsVector.size() << std::endl;
 
 	/* Create the scoreBalance chart */
@@ -219,7 +220,6 @@ void TournamentManager::startTournament()
 	/* Update the score chart and Print the result */
 	updateScoreBalance( 0, 1, gameResult);
 	print_scores(scoreBalance);
-
 }
 
 
@@ -285,20 +285,35 @@ void TournamentManager::print_scores(std::vector<std::tuple<std::string, int, in
 void TournamentManager::updateScoreBalance(int playerIdFirst, int PlayerIdSecond, GameResult gameResult)
 {
 	m_scoreBalanceMutex.lock();
-	// update the Wins & Losses cols
-	(gameResult.winnerId == 0) ? std::get<1>(scoreBalance[playerIdFirst])++ : std::get<2>(scoreBalance[playerIdFirst])++;
-	(gameResult.winnerId == 1) ? std::get<1>(scoreBalance[PlayerIdSecond])++ : std::get<2>(scoreBalance[PlayerIdSecond])++;
 
-	// Update the % col
-	std::get<3>(scoreBalance[playerIdFirst]) = (std::get<1>(scoreBalance[playerIdFirst]) / (std::get<1>(scoreBalance[playerIdFirst]) + std::get<2>(scoreBalance[playerIdFirst]))) * 100;
-	std::get<3>(scoreBalance[PlayerIdSecond]) = (std::get<1>(scoreBalance[PlayerIdSecond]) / (std::get<1>(scoreBalance[PlayerIdSecond]) + std::get<2>(scoreBalance[PlayerIdSecond]))) * 100;
+	allGameResults[playerIdFirst].push_back(std::tuple<int, int, int>(gameResult.scorePlayerA, gameResult.scorePlayerB, playerIdFirst == gameResult.winnerId));
+	int roundAPlayed = allGameResults[playerIdFirst].size();
+	playedRound[roundAPlayed]++;
+	allGameResults[PlayerIdSecond].push_back(std::tuple<int, int, int>(gameResult.scorePlayerB, gameResult.scorePlayerA, PlayerIdSecond == gameResult.winnerId));
+	int roundBPlayed = allGameResults[PlayerIdSecond].size();
+	playedRound[roundBPlayed]++;
 
-	// update the Pts For & Pts Against cols
-	std::get<4>(scoreBalance[playerIdFirst]) += gameResult.scorePlayerA;
-	std::get<5>(scoreBalance[playerIdFirst]) += gameResult.scorePlayerB;
-
-	std::get<4>(scoreBalance[PlayerIdSecond]) += gameResult.scorePlayerB;
-	std::get<5>(scoreBalance[PlayerIdSecond]) += gameResult.scorePlayerA;
+	while (playedRound[m_currentRound] == m_numOfPlayers) {
+		updateScoreBalanceTable();
+	}
 	
 	m_scoreBalanceMutex.unlock();
+}
+
+void TournamentManager::updateScoreBalanceTable()
+{
+	for (int i = 0; i < m_numOfPlayers; i++) {
+		// update the Wins & Losses cols
+		std::get<1>(scoreBalance[i]) += std::get<2>(allGameResults[i][m_currentRound]); //update number of wins
+		std::get<2>(scoreBalance[i]) += ! std::get<2>(allGameResults[i][m_currentRound]); //update number of loses
+		
+		// Update the % col
+		std::get<3>(scoreBalance[i]) = (std::get<1>(scoreBalance[i]) / (m_currentRound + 1)) * 100;
+
+		// update the Pts For & Pts Against cols
+		std::get<4>(scoreBalance[i]) += std::get<0>(allGameResults[i][m_currentRound]);
+		std::get<5>(scoreBalance[i]) += std::get<1>(allGameResults[i][m_currentRound]);
+	}
+	m_currentRound++;
+	//TODO wake up the thread that prints to screen the score balance 
 }

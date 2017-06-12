@@ -13,17 +13,22 @@
 
 #define DEFAULT_THREADS_NUM 4
 
+
 class TournamentManager
 {
 	std::string m_path;
 	std::vector<std::string> m_allFilesInDir;
 	int m_threads;
+	int m_numOfPlayers;
 	std::mutex m_scoreBalanceMutex;
 
 	std::vector<std::shared_ptr<OriginalBoard>> boardsVector;
 	std::vector<std::unique_ptr<IBattleshipGameAlgo>> playersVector;
 
 	std::vector<std::tuple<std::string, int, int, double, int, int>> scoreBalance; // name, wins, loses, percent, pts_for, pts_against
+	int m_currentRound;
+	std::vector<std::vector<std::tuple<int, int, bool>>> allGameResults; //<points gained, points lost, has won?>
+	std::vector<int> playedRound;
 	std::vector<std::tuple<int , int , int>> tournamentSchedule;
 
 	// define function of the type we expect from IBattleshipGameAlgo
@@ -61,12 +66,17 @@ class TournamentManager
 	void print_scores(std::vector< std::tuple< std::string, int, int, double, int, int > > scores) const;
 
 	/**
-	* Update the tournament-score-balance according to the last game played.
+	* Update the tournament-all-games-scores according to the last game played.
 	* params playerIdFirst and playerIdSecond represents the players Id's in the playersVector \ score chart.
 	* param gameResult holding the scores and the winner of the last game played. 
 	* Use mutex update each game seperatly.
 	*/
 	void updateScoreBalance(int playerIdFirst, int PlayerIdSecond, GameResult gameResult);
+
+	/*
+	 * Update the tournament-score-balance according to the last round completed.
+	 */
+	void updateScoreBalanceTable();
 
 public:
 	/* Constructor

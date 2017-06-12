@@ -8,13 +8,15 @@ TournamentManager::TournamentManager() :
 
 TournamentManager::~TournamentManager()
 {
-	CLogger::CloseLogger();
 
 	// Delete the dll vector
 	for (auto dll_vec_itr = dll_vec.begin(); dll_vec_itr != dll_vec.end(); ++dll_vec_itr)
 	{
 		FreeLibrary(std::get<1>(*dll_vec_itr));
+		std::get<1>(*dll_vec_itr) = nullptr;
 	}
+
+	CLogger::CloseLogger();
 }
 
 bool TournamentManager::initTournament(int argc, char* argv[])
@@ -29,8 +31,16 @@ bool TournamentManager::initTournament(int argc, char* argv[])
 			{
 				try
 				{
-					m_threads = std::stoi(argv[i + 1]);
-					givenThreads = true;
+					auto threadsNum = std::stoi(argv[i + 1]);
+					if (threadsNum < 2)
+					{
+						CLogger::GetLogger()->Log("Error: threads parameter given is illegal");
+					}
+					else 
+					{
+						m_threads = threadsNum;
+						givenThreads = true;
+					}
 
 				}
 				catch (std::invalid_argument) { }
@@ -56,6 +66,9 @@ bool TournamentManager::initTournament(int argc, char* argv[])
 		CLogger::GetLogger()->Log("Info: Using default parameter for -threads");
 		setDefaultArgs();
 	}
+	
+	CLogger::GetLogger()->Log("Info: Using path = %s", m_path.c_str());
+	CLogger::GetLogger()->Log("Info: Using -threads = %d", m_threads);
 	return true;
 }
 
@@ -84,7 +97,7 @@ void TournamentManager::setDefaultArgs()
 		try
 		{
 			auto value = std::stoi(tokens.at(1));
-			if (tokens.at(0).compare("-threads") == 0)
+			if (tokens.at(0).compare("-threads") == 0 && value >= 2)
 			{
 				m_threads = value;
 				return;
@@ -192,12 +205,6 @@ void TournamentManager::startTournament()
 	std::cout << "Number of legal players: " << dll_vec.size() << std::endl;
 	std::cout << "Number of legal boards: " << boardsVector.size() << std::endl;
 
-	if (m_threads <= 0)
-	{
-		CLogger::GetLogger()->Log("Warning: input number of threads (%d) is illegal. Assign it to be the default number (4).", m_threads);
-		m_threads = DEFAULT_THREADS_NUM;
-	}
-
 	/* Create the scoreBalance chart */
 	for (auto player: dll_vec)
 	{
@@ -206,7 +213,7 @@ void TournamentManager::startTournament()
 	}
 
 	/* Start One Game */
-	GameManager gameManager(playersVector[0].get(), playersVector[1].get(), boardsVector[0]);
+	GameManager gameManager(std::move(playersVector[0]), std::move(playersVector[1]), boardsVector[0]);
 	auto gameResult = gameManager.runGame();
 
 	/* Update the score chart and Print the result */
@@ -228,7 +235,7 @@ bool TournamentManager::findDllFile(WIN32_FIND_DATAA& fileData, HINSTANCE& hDll,
 		return false;
 
 	// Get function pointer
-	getPlayerFunc = (GetPlayerFuncType)GetProcAddress(hDll, "GetAlgorithm");
+	getPlayerFunc = reinterpret_cast<GetPlayerFuncType>(GetProcAddress(hDll, "GetAlgorithm"));
 	if (!getPlayerFunc)
 		return false;
 

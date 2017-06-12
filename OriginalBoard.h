@@ -109,10 +109,10 @@ private:
 
 public:
 	/* empty constructor */
-	OriginalBoard();
+	OriginalBoard() = default;
 
 	/*destructor for OriginalBoard*/
-	~OriginalBoard() override;
+	~OriginalBoard() = default;
 
 	// block copy and assignment
 	OriginalBoard(const OriginalBoard&) = delete;

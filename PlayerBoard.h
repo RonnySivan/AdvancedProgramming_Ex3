@@ -10,7 +10,7 @@ class PlayerBoard : public BoardData
 	std::shared_ptr<OriginalBoard> _originalBoard;
 
 public:
-	PlayerBoard(int playerID, std::shared_ptr<OriginalBoard> originalBoard);
+	explicit PlayerBoard(int playerID, std::shared_ptr<OriginalBoard> originalBoard);
 	~PlayerBoard() = default;
 	// block copy and assignment
 	PlayerBoard(const PlayerBoard&) = delete;

@@ -213,13 +213,30 @@ void TournamentManager::startTournament()
 		scoreBalance.push_back(std::make_tuple(fileName , 0, 0, 0.0, 0, 0));
 	}
 
-	/* Start One Game */
-	GameManager gameManager(std::move(playersVector[0]), std::move(playersVector[1]), boardsVector[0]);
-	auto gameResult = gameManager.runGame();
+	/* Create the Games-Schedule */
+	createTournamentSchedule();
 
-	/* Update the score chart and Print the result */
-	updateScoreBalance( 0, 1, gameResult);
-	print_scores(scoreBalance);
+	/* If there are too much threads (more than optionl games) - we don't need to use all of the threads */
+	if (m_threads > tournamentSchedule.size())
+		m_threads = tournamentSchedule.size();
+
+	/* Insert games to sign the threads that they end */
+	for (auto i = 0; i < m_threads; ++i)
+	{
+		tournamentSchedule.push_back(std::make_tuple(-1,-1,-1));
+	}
+
+
+/* TODO : 
+	volatile auto start = false;
+	std::vector<std::thread> vec_threads(m_threads);
+	
+	while (!tournamentSchedule.empty())
+	{
+		singleThreadMethod(tournamentSchedule.pop_back);
+	}
+	*/
+
 }
 
 
@@ -300,13 +317,14 @@ void TournamentManager::updateScoreBalance(int playerIdFirst, int PlayerIdSecond
 	m_scoreBalanceMutex.unlock();
 }
 
+
 void TournamentManager::updateScoreBalanceTable()
 {
-	for (int i = 0; i < m_numOfPlayers; i++) {
+	for (auto i = 0; i < m_numOfPlayers; i++) {
 		// update the Wins & Losses cols
 		std::get<1>(scoreBalance[i]) += std::get<2>(allGameResults[i][m_currentRound]); //update number of wins
-		std::get<2>(scoreBalance[i]) += ! std::get<2>(allGameResults[i][m_currentRound]); //update number of loses
-		
+		std::get<2>(scoreBalance[i]) += !std::get<2>(allGameResults[i][m_currentRound]); //update number of loses
+
 		// Update the % col
 		std::get<3>(scoreBalance[i]) = (std::get<1>(scoreBalance[i]) / (m_currentRound + 1)) * 100;
 
@@ -316,4 +334,44 @@ void TournamentManager::updateScoreBalanceTable()
 	}
 	m_currentRound++;
 	//TODO wake up the thread that prints to screen the score balance 
+}
+
+
+void TournamentManager::createTournamentSchedule()
+{
+	auto playersNumber = dll_vec.size();
+	auto boardsNumber = boardsVector.size();
+
+	for (auto i = 0; i < playersNumber; ++i)
+	{
+		for (auto j = 0; j < playersNumber; ++j) //choose the second Player
+		{
+			for (auto k = 0; k < boardsNumber; ++k) //choose the relevant board
+			{ 
+				if (i != j)
+					tournamentSchedule.push_back(std::make_tuple(i, j, k));
+			}
+		}
+	}
+
+	std::random_shuffle(tournamentSchedule.begin(), tournamentSchedule.end());
+
+//	std::cout << "Number of legal gamess: " << tournamentSchedule.size() << std::endl;
+
+}
+
+
+void TournamentManager::singleThreadMethod(std::tuple<int, int, int> game)
+{
+	auto firstPlayerId = std::get<0>(game);
+	auto secondPlayerId = std::get<1>(game);
+	auto boardId = std::get<2>(game);
+
+	GameManager gameManager(std::move(playersVector[firstPlayerId]),
+		std::move(playersVector[secondPlayerId]),
+		boardsVector[boardId]);
+	auto gameResult = gameManager.runGame();
+
+	//update the gameResult to the current cycle score chart
+	updateScoreBalance(firstPlayerId, secondPlayerId, gameResult);
 }

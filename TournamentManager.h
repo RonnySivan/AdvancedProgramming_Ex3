@@ -7,9 +7,10 @@
 #include <mutex> //for threads management
 #include <condition_variable> //for threads management
 #include <deque> //for threads management
+
 #include <memory>
 #include <iomanip> // for print_scores
-#include <algorithm> // for print_scores
+#include <algorithm> // for print_scores + std::random_shuffle
 
 #define DEFAULT_THREADS_NUM 4
 
@@ -20,7 +21,7 @@ class TournamentManager
 	std::vector<std::string> m_allFilesInDir;
 	int m_threads;
 	int m_numOfPlayers;
-	std::mutex m_scoreBalanceMutex;
+	std::mutex m_scoreBalanceMutex; //update the score Balance - each thread at his time.
 
 	std::vector<std::shared_ptr<OriginalBoard>> boardsVector;
 	std::vector<std::unique_ptr<IBattleshipGameAlgo>> playersVector;
@@ -29,7 +30,7 @@ class TournamentManager
 	int m_currentRound;
 	std::vector<std::vector<std::tuple<int, int, bool>>> allGameResults; //<points gained, points lost, has won?>
 	std::vector<int> playedRound;
-	std::vector<std::tuple<int , int , int>> tournamentSchedule;
+	std::deque<std::tuple<int , int , int>> tournamentSchedule;
 
 	// define function of the type we expect from IBattleshipGameAlgo
 	typedef IBattleshipGameAlgo *(*GetPlayerFuncType)();
@@ -48,10 +49,12 @@ class TournamentManager
 	bool findDllFile(WIN32_FIND_DATAA& fileData, HINSTANCE& hDll, std::string& fullFileName);
 
 
-	/* TODO
-	 * create the tournament schedule - according num of players and boards.
-	 * each player will play against all other players, on each board - TWICE (switch positions)!
+	/*
+	 * Create the tournament schedule - according num of players and boards.
+	 * Each player will play against all other players, on each board - TWICE (switch positions)!
 	 */
+	void createTournamentSchedule();
+
 
 	/*
 	* gets the names of all the files in the path given and extracts the default parameters from config file
@@ -65,6 +68,7 @@ class TournamentManager
 	 */
 	void print_scores(std::vector< std::tuple< std::string, int, int, double, int, int > > scores) const;
 
+
 	/**
 	* Update the tournament-all-games-scores according to the last game played.
 	* params playerIdFirst and playerIdSecond represents the players Id's in the playersVector \ score chart.
@@ -73,10 +77,18 @@ class TournamentManager
 	*/
 	void updateScoreBalance(int playerIdFirst, int PlayerIdSecond, GameResult gameResult);
 
+
 	/*
 	 * Update the tournament-score-balance according to the last round completed.
 	 */
 	void updateScoreBalanceTable();
+
+
+	/**
+	 * The methos that each thread makes:
+	 * calls the gameManager to run the game and pass the gameResult to the scoreBalance */
+	void singleThreadMethod(std::tuple<int, int, int> game);
+
 
 public:
 	/* Constructor

@@ -215,27 +215,39 @@ void TournamentManager::startTournament()
 
 	/* Create the Games-Schedule */
 	createTournamentSchedule();
+	m_numOfGames = tournamentSchedule.size();
 
 	/* If there are too much threads (more than optionl games) - we don't need to use all of the threads */
-	if (m_threads > tournamentSchedule.size())
-		m_threads = tournamentSchedule.size();
+	if (m_threads > m_numOfGames)
+		m_threads = m_numOfGames;
 
-	/* Insert games to sign the threads that they end */
-	for (auto i = 0; i < m_threads; ++i)
+	/* Insert custom game-representation objects, to mark the end of the gameSchedule */
+	for (auto i=0; i<m_threads; ++i)
 	{
 		tournamentSchedule.push_back(std::make_tuple(-1,-1,-1));
 	}
 
-
-/* TODO : 
-	volatile auto start = false;
+	// Start the tournament using m_threads threads
+	// TODO - DEBUG \ MOVE vec_threads TO BE A CLASS MEMBER? ETC...
 	std::vector<std::thread> vec_threads(m_threads);
-	
-	while (!tournamentSchedule.empty())
-	{
-		singleThreadMethod(tournamentSchedule.pop_back);
+	for (auto & t : vec_threads) {
+		t = std::thread(&TournamentManager::singleThreadMethod, this);
 	}
-	*/
+
+	// fire the "start" signal for all threads
+	startThreads = true;
+	startThreadsCV.notify_all();
+
+	// wait until all games cycles finish
+	std::unique_lock<std::mutex> lock(m_finishCyclesMutex);
+	finishCyclesCV.wait(lock, [this] {return m_currentRound == m_numOfGames / m_numOfPlayers; });
+
+	// TODO - join or detach the threads? 
+	for (auto & t : vec_threads) {
+//		t.detach();
+	}
+
+	std::cout << "finish Running " << std::endl; //TODO - Remove before submission
 
 }
 
@@ -333,6 +345,10 @@ void TournamentManager::updateScoreBalanceTable()
 		std::get<5>(scoreBalance[i]) += std::get<1>(allGameResults[i][m_currentRound]);
 	}
 	m_currentRound++;
+	if (m_currentRound == m_numOfPlayers / m_numOfGames)
+	{
+		finishCyclesCV.notify_one();
+	}
 	//TODO wake up the thread that prints to screen the score balance 
 }
 
@@ -361,17 +377,49 @@ void TournamentManager::createTournamentSchedule()
 }
 
 
-void TournamentManager::singleThreadMethod(std::tuple<int, int, int> game)
+void TournamentManager::singleThreadMethod()
 {
-	auto firstPlayerId = std::get<0>(game);
-	auto secondPlayerId = std::get<1>(game);
-	auto boardId = std::get<2>(game);
+	// wait for "start" sign
+	{
+		std::unique_lock<std::mutex> lock(m_startThreadsMutex);
+		startThreadsCV.wait(lock, [this] {return startThreads; });
+	}
+	std::tuple<int, int, int> gameRepresentation;
 
-	GameManager gameManager(std::move(playersVector[firstPlayerId]),
-		std::move(playersVector[secondPlayerId]),
-		boardsVector[boardId]);
-	auto gameResult = gameManager.runGame();
+	while (true)
+	{
+		getGame(gameRepresentation);
 
-	//update the gameResult to the current cycle score chart
-	updateScoreBalance(firstPlayerId, secondPlayerId, gameResult);
+		auto firstPlayerId = std::get<0>(gameRepresentation);
+		auto secondPlayerId = std::get<1>(gameRepresentation);
+		auto boardId = std::get<2>(gameRepresentation);
+
+		// end of games to play (in the all schedule), exit the thread. 
+		if (firstPlayerId == -1 && secondPlayerId == -1 && boardId == -1)
+			break;
+
+		/* Create a gameManager and run it with both players and board.*/
+		GameManager gameManager(std::move(playersVector[firstPlayerId]),
+			std::move(playersVector[secondPlayerId]),
+			boardsVector[boardId]);
+		auto gameResult = gameManager.runGame();
+
+		std::cout << "Run a Game!" << std::endl; //TODO - Remove before submission
+
+		/* update the gameResult to the current cycle score chart */
+		updateScoreBalance(firstPlayerId, secondPlayerId, gameResult);
+
+	}
+
+}
+
+void TournamentManager::getGame(std::tuple<int, int, int>& game)
+{
+	if (!tournamentSchedule.empty())
+	{
+		m_getGameMutex.lock();
+		game = tournamentSchedule.back();
+		tournamentSchedule.pop_back();
+		m_getGameMutex.unlock();
+	}
 }

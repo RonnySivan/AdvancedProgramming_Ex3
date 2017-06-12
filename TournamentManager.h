@@ -21,7 +21,17 @@ class TournamentManager
 	std::vector<std::string> m_allFilesInDir;
 	int m_threads;
 	int m_numOfPlayers;
+	int m_numOfGames;
+
 	std::mutex m_scoreBalanceMutex; //update the score Balance - each thread at his time.
+	std::mutex m_getGameMutex; // get the first game representation from the gameSchedule deque (so no two threads taking the same game).
+	std::mutex m_startThreadsMutex; // Start the threads action at the same time.
+	std::mutex m_finishCyclesMutex; 
+	std::condition_variable finishCyclesCV;
+
+
+	volatile bool startThreads = false; 
+	std::condition_variable startThreadsCV;
 
 	std::vector<std::shared_ptr<OriginalBoard>> boardsVector;
 	std::vector<std::unique_ptr<IBattleshipGameAlgo>> playersVector;
@@ -87,8 +97,12 @@ class TournamentManager
 	/**
 	 * The methos that each thread makes:
 	 * calls the gameManager to run the game and pass the gameResult to the scoreBalance */
-	void singleThreadMethod(std::tuple<int, int, int> game);
+	void singleThreadMethod();
 
+	/**
+	 * Assign the input tuple with the next game to play, from the gameSchedule.
+	 */
+	void getGame(std::tuple<int, int, int>& game);
 
 public:
 	/* Constructor

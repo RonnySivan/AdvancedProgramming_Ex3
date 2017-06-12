@@ -31,16 +31,21 @@ GameManager::~GameManager()
 
 GameResult GameManager::runGame()
 {
+	auto movesCounter = 0;
 	auto turn = PLAYER_A;
 	GameResult gameResult(0, 0, 0);
 
 	/* The Game Loop*/
 	while (numOfShipsA > 0 && numOfShipsB > 0 && (hasMoreMovesA || hasMoreMovesB)) {
+		movesCounter++;
+		if (turn == PLAYER_A && hasMoreMovesA)
+			turn = runPlayer(PLAYER_A);
+		else if (turn == PLAYER_B && hasMoreMovesB)
+			turn = runPlayer(PLAYER_B);
 
-	if (turn == PLAYER_A && hasMoreMovesA)
-		turn = runPlayer(PLAYER_A);
-	else if (turn == PLAYER_B && hasMoreMovesB)
-		turn = runPlayer(PLAYER_B);
+		// If the plyaers arent smart - stop the game after it had too many moves
+		if (movesCounter > gameBoard.rows() * gameBoard.cols() * gameBoard.depth() * 2)
+			break;
 	}
 	
 	/* Create a GameResult Object to return to the Tournament Manager */
@@ -75,7 +80,7 @@ int GameManager::runPlayer(int playerId)
 	}
 
 	// Check if the attak is a Hit or a Miss
-	std::pair<AttackResult, int> attackResAndPlayer = gameBoard.checkAttackResult(attackCoordinate);
+	auto attackResAndPlayer = gameBoard.checkAttackResult(attackCoordinate);
 	turn = analyzeLegalAttack(playerId, turn, attackResAndPlayer, attackCoordinate);
 
 	playerA->notifyOnAttackResult(playerId, attackCoordinate, attackResAndPlayer.first);

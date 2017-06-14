@@ -25,7 +25,8 @@ class SmartPlayer : public IBattleshipGameAlgo
 	std::set< Coordinate > m_first_found_set; // first location found of an oponent's ship (potentially), to be attacked later
 	Coordinate m_ship_edge;
 	std::mt19937 m_generator; //for random search
-	std::vector<BattleShip> ships;
+	//std::vector<BattleShip> m_oponent_ships; // TODO: check if needed
+	BattleShip m_oponent_ship; // TODO: check if needed
 
 	// class private functions
 	/**
@@ -35,9 +36,7 @@ class SmartPlayer : public IBattleshipGameAlgo
 
 	
 	/**
-	 * \brief finds all player's ships on board and puts them in ships vector
-	 * \param board player's board accepted in setBoard() function, and should be valid
-	 * \param ships vector to hold player's ships
+	 * \brief finds all player's on board and removes illegal ships locations from m_potential_attacks set accordingly.
 	 */
 	void findShips(); // TODO
 
@@ -105,25 +104,14 @@ class SmartPlayer : public IBattleshipGameAlgo
 
 	/**
 	 * \brief updates SmartPlayer's members after a ship is sinked
-	 * \param ship_start location of one edge of the ship
-	 * \param ship_end location of the other edge of the ship
 	 */
-	void sink_update(const Coordinate& ship_start, const Coordinate& ship_end);
+	void sink_update(); 
 
 	/**
-	 * \brief updates m_potential_attacks set after a ship is sinked
-	 * \param ship_start location of one edge of the ship 
-	 * \param ship_end location of the other edge of the ship
-	 * \param direction 0 if ship was vertical, 1 if ship was horizontal, else 2 (had depth)
+	 * \brief removes the neighbors of an oponent's sinked ship
+	 * \param ship an oponent's sinked ship
 	 */
-	void update_potential_attacks(const Coordinate& ship_start, const Coordinate& ship_end, int direction);
-
-	/**
-	 * \brief removes neighbors of a coordinate from m_potential_attacks set
-	 * \param location one of the sinked ship's locations
-	 * \param direction 0 if ship was vertical, 1 if ship was horizontal, else 2 (had depth)
-	 */
-	void remove_coordinate_neighbors(const Coordinate& location, int direction);
+	void remove_ship_neighbors(BattleShip ship);
 	
 	/**
 	 * \brief search val in set, and if found erase it from set.

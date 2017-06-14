@@ -15,6 +15,7 @@
 class BattleShip
 {
 public:
+	BattleShip(); // empty Ctor for SmartPlayer
 	BattleShip(char letter, std::vector<Coordinate>& locations);
 	~BattleShip();
 
@@ -38,6 +39,17 @@ public:
 
 	/* returns true iff ship of type exists */
 	static bool isLegalSymbol(char type);
+
+	/**
+	 * \brief Adds a location coordinate to m_locations
+	 * \param location the coordinate to be added
+	 */
+	void addLocation(const Coordinate location);
+
+	/**
+	 * \brief Clears m_locations
+	 */
+	void clearLocations();
 
 private:
 	char m_letter;

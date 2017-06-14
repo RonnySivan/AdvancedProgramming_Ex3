@@ -108,7 +108,6 @@ int GameManager::analyzeLegalAttack(int playerId, int turn, std::pair<AttackResu
 		// if the other player has more moves - pass the turn.
 		if ((playerId == PLAYER_A && hasMoreMovesB) || (playerId == PLAYER_B && hasMoreMovesA))
 			turn = (turn + 1) % 2;
-		std::cout << "Miss" << std::endl; // TODO - remove before submit - here for debug!
 	}
 	else
 	{ // player attack Hit
@@ -117,23 +116,15 @@ int GameManager::analyzeLegalAttack(int playerId, int turn, std::pair<AttackResu
 			if ((playerId == PLAYER_A && hasMoreMovesB) || (playerId == PLAYER_B && hasMoreMovesA))
 				turn = (turn + 1) % 2;
 			attackResAndPlayer.first = checkHitResult(playerId, attackCoordinates, (playerId) ? battleShipsB : battleShipsA); // check if it is a Hit or a Sink
-			// TODO - remove before submit - here for debug! :
-			if (attackResAndPlayer.first == AttackResult::Sink)	std::cout << "Self Attack - Sink" << std::endl;
-			else std::cout << "Self Attack - Hit" << std::endl;
 		}
 		else if ((playerId == PLAYER_A && attackResAndPlayer.second == PLAYER_B) || (playerId == PLAYER_B && attackResAndPlayer.second == PLAYER_A))
 		{ // Hit Other Player
 			attackResAndPlayer.first = checkHitResult((playerId) ? PLAYER_A : PLAYER_B, attackCoordinates, (playerId) ? battleShipsA : battleShipsB); // check if it is a Hit or a Sink
-			// TODO - remove before submit - here for debug! :
-			if (attackResAndPlayer.first == AttackResult::Sink) std::cout << "Sink other player battleShip" << std::endl;
-			else std::cout << "Hit other player battleShip" << std::endl;
-
 		}
 		else
 		{ // The player attacked an allready hitted battleShip (that didn't sink yet)
 			if ((playerId == PLAYER_A && hasMoreMovesB) || (playerId == PLAYER_B && hasMoreMovesA))
 			turn = (turn + 1) % 2;
-			std::cout << "Hit battleShip, again..." << std::endl; // TODO - remove before submit - here for debug!
 		}
 	}
 	return turn;

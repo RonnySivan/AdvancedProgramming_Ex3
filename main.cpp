@@ -5,11 +5,11 @@ int main(int argc, char* argv[])
 
 	/* Initiating the Tournament Manager */
 	TournamentManager tournamentManager;
-	if (! tournamentManager.initTournament(argc, argv))
+	if (!tournamentManager.initTournament(argc, argv))
 		return -1;
 
 	/* Get all files in the directory - Exit if Wrong path OR No board files OR Missing algorithm (dll) files */
-	if (! tournamentManager.findBoardAndDlls())
+	if (!tournamentManager.findBoardAndDlls())
 		return -1;
 
 	/* Initiating the dll vector - exit if there isn't (at least) two valid dll's */
@@ -21,7 +21,6 @@ int main(int argc, char* argv[])
 		return -1;
 
 	tournamentManager.startTournament();
-
-
+	
 	return 0;
 }

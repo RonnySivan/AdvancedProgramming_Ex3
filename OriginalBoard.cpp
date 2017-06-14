@@ -1,10 +1,5 @@
 #include "OriginalBoard.h"
 
-OriginalBoard::OriginalBoard() { }
-
-
-OriginalBoard::~OriginalBoard() { }
-
 
 int OriginalBoard::typeToErr(char type) {
 	if (type == 'B')

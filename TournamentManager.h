@@ -7,24 +7,40 @@
 #include <mutex> //for threads management
 #include <condition_variable> //for threads management
 #include <deque> //for threads management
+
 #include <memory>
 #include <iomanip> // for print_scores
-#include <algorithm> // for print_scores
+#include <algorithm> // for print_scores + std::random_shuffle
 
 #define DEFAULT_THREADS_NUM 4
+
 
 class TournamentManager
 {
 	std::string m_path;
 	std::vector<std::string> m_allFilesInDir;
 	int m_threads;
-	std::mutex m_scoreBalanceMutex;
+	int m_numOfPlayers;
+	int m_numOfGames;
+
+	std::mutex m_scoreBalanceMutex; //update the score Balance - each thread at his time.
+	std::mutex m_getGameMutex; // get the first game representation from the gameSchedule deque (so no two threads taking the same game).
+	std::mutex m_startThreadsMutex; // Start the threads action at the same time.
+	std::mutex m_finishCyclesMutex; 
+	std::condition_variable finishCyclesCV;
+
+
+	volatile bool startThreads = false; 
+	std::condition_variable startThreadsCV;
 
 	std::vector<std::shared_ptr<OriginalBoard>> boardsVector;
 	std::vector<std::unique_ptr<IBattleshipGameAlgo>> playersVector;
 
 	std::vector<std::tuple<std::string, int, int, double, int, int>> scoreBalance; // name, wins, loses, percent, pts_for, pts_against
-	std::vector<std::tuple<int , int , int>> tournamentSchedule;
+	int m_currentRound;
+	std::vector<std::vector<std::tuple<int, int, bool>>> allGameResults; //<points gained, points lost, has won?>
+	std::vector<int> playedRound;
+	std::deque<std::tuple<int , int , int>> tournamentSchedule;
 
 	// define function of the type we expect from IBattleshipGameAlgo
 	typedef IBattleshipGameAlgo *(*GetPlayerFuncType)();
@@ -43,10 +59,12 @@ class TournamentManager
 	bool findDllFile(WIN32_FIND_DATAA& fileData, HINSTANCE& hDll, std::string& fullFileName);
 
 
-	/* TODO
-	 * create the tournament schedule - according num of players and boards.
-	 * each player will play against all other players, on each board - TWICE (switch positions)!
+	/*
+	 * Create the tournament schedule - according num of players and boards.
+	 * Each player will play against all other players, on each board - TWICE (switch positions)!
 	 */
+	void createTournamentSchedule();
+
 
 	/*
 	* gets the names of all the files in the path given and extracts the default parameters from config file
@@ -60,13 +78,31 @@ class TournamentManager
 	 */
 	void print_scores(std::vector< std::tuple< std::string, int, int, double, int, int > > scores) const;
 
+
 	/**
-	* Update the tournament-score-balance according to the last game played.
+	* Update the tournament-all-games-scores according to the last game played.
 	* params playerIdFirst and playerIdSecond represents the players Id's in the playersVector \ score chart.
 	* param gameResult holding the scores and the winner of the last game played. 
 	* Use mutex update each game seperatly.
 	*/
 	void updateScoreBalance(int playerIdFirst, int PlayerIdSecond, GameResult gameResult);
+
+
+	/*
+	 * Update the tournament-score-balance according to the last round completed.
+	 */
+	void updateScoreBalanceTable();
+
+
+	/**
+	 * The methos that each thread makes:
+	 * calls the gameManager to run the game and pass the gameResult to the scoreBalance */
+	void singleThreadMethod();
+
+	/**
+	 * Assign the input tuple with the next game to play, from the gameSchedule.
+	 */
+	void getGame(std::tuple<int, int, int>& game);
 
 public:
 	/* Constructor

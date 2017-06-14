@@ -11,7 +11,7 @@ CLogger::CLogger()
 CLogger* CLogger::GetLogger() {
 	if (m_pThis == nullptr) {
 		m_pThis = new CLogger();
-		m_Logfile.open(m_sFileName.c_str(), std::ios::app); // TODO - add std::ios::out OR std::ios::trunc? (to start a new file if another one exist)
+		m_Logfile.open(m_sFileName.c_str(), std::ios::app);
 	}
 	return m_pThis;
 }

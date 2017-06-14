@@ -30,8 +30,10 @@ void SmartPlayer::setBoard(const BoardData& board)
 	m_state = State::Search;
 	m_potential_attacks.clear();
 	init_potential_attacks();
+	findShips();
 	m_last_good_attack = m_cur_first_found = m_ship_edge = Coordinate(0, 0, 0);
 	m_first_found_set.clear();
+	m_oponent_ship.clearLocations();
 }
 
 void SmartPlayer::init_potential_attacks()
@@ -90,7 +92,9 @@ Coordinate SmartPlayer::attackState()
 	Coordinate ans{0, 0, 0};
 	bool done;
 
-	if (m_state == State::FirstUp || m_state == State::FirstDown || m_state == State::FirstRight || m_state == State::FirstLeft || m_state == State::FirstFwd || m_state == State::FirstBwd)
+	if (!m_first_found_set.empty() && 
+		(m_state == State::FirstUp || m_state == State::FirstDown || m_state == State::FirstRight ||
+		m_state == State::FirstLeft || m_state == State::FirstFwd || m_state == State::FirstBwd))
 		check_neighbors(m_last_good_attack);
 	
 	do
@@ -118,9 +122,6 @@ Coordinate SmartPlayer::attackState()
 
 void SmartPlayer::check_neighbors(const Coordinate& attack)
 {
-	if (m_first_found_set.empty())
-		return;
-
 	// check if attack's neighbors were already self-hit by oponent - belongs to the same ship being currently attacked
 	std::vector<Coordinate> neighbors(6, { 0, 0, 0 });
 	neighbors[0] = neighbors[1] = neighbors[2] = neighbors[3] = neighbors[4] = neighbors[5] = attack;
@@ -135,6 +136,7 @@ void SmartPlayer::check_neighbors(const Coordinate& attack)
 	{
 		if (set_search_and_erase(neighbors[i], m_first_found_set)) {
 			m_last_good_attack = neighbors[i];
+			m_oponent_ship.addLocation(neighbors[i]);
 			switch (i)
 			{
 				case 0:	m_state = State::Up1;		break;
@@ -163,12 +165,14 @@ bool SmartPlayer::check_attack(const Coordinate& attack)
 void SmartPlayer::calc_state(int playerID, Coordinate move, const AttackResult& last_attack_result)
 {
 	if (m_state == State::Search) {
-		if (last_attack_result == AttackResult::Hit) { // found oponent's ship for the first time 
-			m_cur_first_found = m_last_good_attack = move;
-			m_state = State::FirstUp; // try to go up
-		} // else: missed or sinked ship of size 1 - stay in search state
-		else if (last_attack_result == AttackResult::Sink) // self sink of oponent's ship of size 1
-			update_potential_attacks(move, move, true);
+		if (last_attack_result != AttackResult::Miss) {
+			m_oponent_ship.addLocation(move);
+			if (last_attack_result == AttackResult::Hit) { // found oponent's ship for the first time 
+				m_cur_first_found = m_last_good_attack = move;
+				m_state = State::FirstUp; // try to go up
+			} else if (last_attack_result == AttackResult::Sink) // self sink of oponent's ship of size 1 - stay in search state
+				sink_update();
+		} // else: missed - stay in search state
 	} 
 	else {
 		if (playerID != m_id && last_attack_result == AttackResult::Hit) {
@@ -212,6 +216,7 @@ void SmartPlayer::check_first(Coordinate move, const AttackResult& last_attack_r
 	}
 	else {
 		m_last_good_attack  = move;
+		m_oponent_ship.addLocation(move);
 		if (last_attack_result == AttackResult::Hit) { // continue going at the same direction
 			switch (m_state) {
 				case State::FirstUp:	m_state = State::Up1;		break;
@@ -223,7 +228,7 @@ void SmartPlayer::check_first(Coordinate move, const AttackResult& last_attack_r
 			}
 		}
 		else // Sink
-			sink_update(m_cur_first_found, m_last_good_attack);
+			sink_update();
 	}
 }
 
@@ -242,8 +247,9 @@ void SmartPlayer::check_1(Coordinate move, const AttackResult & last_attack_resu
 		}
 	}
 	else {
+		m_oponent_ship.addLocation(move);
 		if (last_attack_result == AttackResult::Sink)
-			sink_update(m_cur_first_found, move);
+			sink_update();
 		else // Hit - update last successful attack and continue going at the same direction
 			m_last_good_attack = move;
 	}
@@ -252,24 +258,18 @@ void SmartPlayer::check_1(Coordinate move, const AttackResult & last_attack_resu
 void SmartPlayer::check_2(Coordinate move, const AttackResult & last_attack_result)
 {
 	if (last_attack_result == AttackResult::Sink) 
-		sink_update(m_ship_edge, move);
+		sink_update();
 	else // Hit - update last successful attack and continue going at the same direction
 		m_last_good_attack  = move;
 }
 
-void SmartPlayer::sink_update(const Coordinate& ship_start, const Coordinate& ship_end) {
-	if (m_state == State::FirstUp || m_state == State::Up1
-		|| m_state == State::FirstDown || m_state == State::Down1 || m_state == State::Down2) // vertical
-		update_potential_attacks(ship_start, ship_end, 0);
-	else if (m_state == State::FirstRight || m_state == State::Right1
-		|| m_state == State::FirstLeft || m_state == State::Left1 || m_state == State::Left2) // horizontal
-		update_potential_attacks(ship_start, ship_end, 1);
-	else // ship with depth (or ship of size 2)
-		update_potential_attacks(ship_start, ship_end, 2);
+void SmartPlayer::sink_update() {
+	remove_ship_neighbors(m_oponent_ship);
 
 	m_last_good_attack = m_cur_first_found = Coordinate(0, 0, 0); // reset
+	m_oponent_ship.clearLocations();
 	m_state = State::Search; // done with ship
-	if (!m_first_found_set.empty()) { // we already found other ships
+	if (!m_first_found_set.empty()) { // we already found other oponent's ships
 		auto first = m_first_found_set.cbegin();
 		auto found = *first;
 		m_first_found_set.erase(first);
@@ -277,85 +277,30 @@ void SmartPlayer::sink_update(const Coordinate& ship_start, const Coordinate& sh
 	}
 }
 
-void SmartPlayer::update_potential_attacks(const Coordinate& ship_start, const Coordinate& ship_end, int direction)
-{ // TODO: update to receive ship as a parameter
-	// remove neighbors from the edges // TODO: update for 3D
-	remove_coordinate_neighbors(ship_start, true);
-	remove_coordinate_neighbors(ship_start, false);
-
-	if (ship_start != ship_end)
-	{
-		for (auto i = 0; i < 2; ++i)
-		{
-			remove_coordinate_neighbors(ship_end, i);
-		}
-
-		// remove neighbors from the middle
-		int range;
-		Coordinate cur{ 0, 0, 0 };
-		if (direction == 0) { // vertical
-			range = std::abs(ship_end.row - ship_start.row);
-			if (range > 1) {
-				cur = ship_end.row > ship_start.row ? ship_start : ship_end;
-				for (auto i = 1; i < range; ++i)
-				{
-					cur.row += i;
-					remove_coordinate_neighbors(cur, 0);
-				}
-			}
-		}
-		else if (direction == 1) { // horizontal
-			range = std::abs(ship_end.col - ship_start.col);
-			if (range > 1) {
-				cur = ship_end.col > ship_start.col ? ship_start : ship_end;
-				for (auto i = 1; i < range; ++i)
-				{
-					cur.col += i;
-					remove_coordinate_neighbors(cur, 1);
-				}
-			}
-
-		}
-		else { // direction == 2 - depth
-			// TODO
-		}
-		
-	}
-}
-
-void SmartPlayer::remove_coordinate_neighbors(const Coordinate& location, int direction) { // TODO: update
-	std::vector<Coordinate> neighbors(4, { 0, 0, 0 });
-	neighbors[0] = neighbors[1] = neighbors[2] = neighbors[3] = location;
-	switch (direction)
-	{
-		case 0:	// vertical
-			neighbors[0].col -= 1;
-			neighbors[1].col += 1;
-			neighbors[2].depth -= 1;
-			neighbors[3].depth += 1;
-			break;
-		case 1: // horizontal
-			neighbors[0].row -= 1;
-			neighbors[1].row += 1;
-			neighbors[2].depth -= 1;
-			neighbors[3].depth += 1;
-			break;
-		case 2: // depth
-			neighbors[0].col -= 1;
-			neighbors[1].col += 1;
-			neighbors[2].row -= 1;
-			neighbors[3].row += 1;
-			break;
-		default: 
-			std::cout << "@ remove_coordinate_neighbors got wrong direction = " << direction << std::endl; // TODO: DELETE
-	}
+void SmartPlayer::remove_ship_neighbors(BattleShip ship)
+{
+	std::vector<Coordinate> neighbors(6, { 0, 0, 0 });
 	
-	for (auto neighbor : neighbors) {
-		// if neighbor is in m_first_found_set - belongs to a sinked ship, should remove it and erase it's neighbours
-		if (!m_first_found_set.empty() && set_search_and_erase(/*m_first_found_set.cbegin(), m_first_found_set.cend(), */neighbor, m_first_found_set)) {
-			remove_coordinate_neighbors(neighbor, direction);
+
+	for (auto location : ship.getLocations())
+	{
+		neighbors[0] = neighbors[1] = neighbors[2] = neighbors[3] = neighbors[4] = neighbors[5] = location;
+		neighbors[0].row--;
+		neighbors[1].row++;
+		neighbors[2].col++;
+		neighbors[3].col--;
+		neighbors[4].depth++;
+		neighbors[5].depth--;
+
+		for (auto neighbor : neighbors) {
+			// if neighbor is in m_first_found_set - belongs to a sinked ship, should remove it and erase it's neighbours
+			if (!m_first_found_set.empty() && set_search_and_erase(neighbor, m_first_found_set)) {
+				BattleShip temp_ship{};
+				temp_ship.addLocation(neighbor);
+				remove_ship_neighbors(temp_ship);
+			}
+			set_search_and_erase(neighbor, m_potential_attacks);
 		}
-		set_search_and_erase(/*m_potential_attacks.cbegin(), m_potential_attacks.cend(), */neighbor, m_potential_attacks);
 	}
 }
 
@@ -367,8 +312,6 @@ bool SmartPlayer::set_search_and_erase(const Coordinate& val, std::set<Coordinat
 	}
 	return false;
 }
-
-
 
 bool SmartPlayer::isLegalSeqHorz(int r, int c, int d, std::vector<Coordinate>& locations)
 {
@@ -411,14 +354,14 @@ bool SmartPlayer::isLegalSeqVert(int r, int c, int d, std::vector<Coordinate>& l
 		auto cur = m_board->charAt(Coordinate(k, c, d));
 		if (cur != type)
 		{
-			set_search_and_erase(Coordinate(r, c, k), m_potential_attacks);
+			set_search_and_erase(Coordinate(k, c, d), m_potential_attacks);
 			break;
 		}
 		set_search_and_erase(Coordinate(k, c, d - 1), m_potential_attacks);
 		set_search_and_erase(Coordinate(k, c, d + 1), m_potential_attacks);
 		set_search_and_erase(Coordinate(k, c - 1, d), m_potential_attacks);
 		set_search_and_erase(Coordinate(k, c + 1, d), m_potential_attacks);
-		locations.push_back(Coordinate(k, c, k));
+		locations.push_back(Coordinate(k, c, d));
 		len++;
 	}
 
@@ -475,23 +418,6 @@ void SmartPlayer::findShips()
 					bool vert = isLegalSeqVert(i, j, k, locV);
 					bool horz = isLegalSeqHorz(i, j, k, locH);
 					bool deep = isLegalSeqDeep(i, j, k, locD);
-					if (!vert)
-					{
-						//legal vert ship!
-						ships.push_back(BattleShip(type, locV));
-						continue;
-					}
-					if (!horz)
-					{
-						//legal horz ship!
-						ships.push_back(BattleShip(type, locH));
-						continue;
-					}
-					if (!deep)
-					{
-						//legal deep ship!
-						ships.push_back(BattleShip(type, locD));
-					}
 				}
 			}
 		}

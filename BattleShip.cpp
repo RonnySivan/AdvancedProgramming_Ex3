@@ -1,6 +1,10 @@
 #include "BattleShip.h"
 
 
+BattleShip::BattleShip(): m_letter(char(0)), m_score(0), m_currentLength(0), m_alive(true)
+{
+}
+
 /*
 * Ctor for BattleShip
 * \param letter - name of the ship
@@ -76,4 +80,14 @@ bool BattleShip::isLegalShip(char type, int size) {
 bool BattleShip::isLegalSymbol(char type) {
 	return (type == 'B' || type == 'b' || type == 'P' || type == 'p' ||
 		type == 'M' || type == 'm' || type == 'D' || type == 'd');
+}
+
+void BattleShip::addLocation(const Coordinate location)
+{
+	m_locations.push_back(location);
+}
+
+void BattleShip::clearLocations()
+{
+	m_locations.clear();
 }

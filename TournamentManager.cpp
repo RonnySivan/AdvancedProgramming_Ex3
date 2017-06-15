@@ -1,7 +1,7 @@
 ﻿#include "TournamentManager.h"
 
 TournamentManager::TournamentManager() :
-	m_path(""), m_threads(DEFAULT_THREADS_NUM), m_numOfPlayers(0), m_currentRound(0)
+	m_path(""), m_threads(DEFAULT_THREADS_NUM), m_numOfPlayers(0), m_numOfGames(0), m_currentRound(0)
 {
 	CLogger::GetLogger()->Log("The program began running!");
 }
@@ -32,7 +32,7 @@ bool TournamentManager::initTournament(int argc, char* argv[])
 				try
 				{
 					auto threadsNum = std::stoi(argv[i + 1]);
-					if (threadsNum < 2)
+					if (threadsNum < 1)
 					{
 						CLogger::GetLogger()->Log("Error: threads parameter given is illegal");
 					}
@@ -209,13 +209,18 @@ void TournamentManager::startTournament()
 	/* Create the scoreBalance chart */
 	for (auto player: dll_vec)
 	{
-		auto fileName = std::get<0>(player);
-		scoreBalance.push_back(std::make_tuple(fileName , 0, 0, 0.0, 0, 0));
+		auto playerName = std::get<0>(player);
+		scoreBalance.push_back(std::make_tuple(playerName , 0, 0, 0.0, 0, 0));
+		allGameResults.push_back(std::vector<std::tuple<int, int, int>>());
 	}
 
 	/* Create the Games-Schedule */
 	createTournamentSchedule();
 	m_numOfGames = tournamentSchedule.size();
+	for (auto i=0; i < m_numOfGames / m_numOfPlayers  ; ++i )
+	{
+		playedRound.push_back(0);
+	}
 
 	/* If there are too much threads (more than optionl games) - we don't need to use all of the threads */
 	if (m_threads > m_numOfGames)
@@ -228,7 +233,6 @@ void TournamentManager::startTournament()
 	}
 
 	// Start the tournament using m_threads threads
-	// TODO - DEBUG \ MOVE vec_threads TO BE A CLASS MEMBER? ETC...
 	std::vector<std::thread> vec_threads(m_threads);
 	for (auto & t : vec_threads) {
 		t = std::thread(&TournamentManager::singleThreadMethod, this);
@@ -240,11 +244,10 @@ void TournamentManager::startTournament()
 
 	// wait until all games cycles finish
 	std::unique_lock<std::mutex> lock(m_finishCyclesMutex);
-	finishCyclesCV.wait(lock, [this] {return m_currentRound == m_numOfGames / m_numOfPlayers; });
+	finishAllCyclesCV.wait(lock, [this] {return m_currentRound == m_numOfGames / m_numOfPlayers; });
 
-	// TODO - join or detach the threads? 
 	for (auto & t : vec_threads) {
-//		t.detach();
+		t.join();
 	}
 
 	std::cout << "finish Running " << std::endl; //TODO - Remove before submission
@@ -269,8 +272,6 @@ bool TournamentManager::findDllFile(WIN32_FIND_DATAA& fileData, HINSTANCE& hDll,
 		return false;
 
 	dll_vec.push_back(std::make_tuple(playerName, hDll, getPlayerFunc));
-	std::unique_ptr<IBattleshipGameAlgo> player(std::get<2>(dll_vec.back())());
-	playersVector.push_back(std::move(player));
 
 	return true;
 }
@@ -315,14 +316,15 @@ void TournamentManager::updateScoreBalance(int playerIdFirst, int PlayerIdSecond
 {
 	m_scoreBalanceMutex.lock();
 
-	allGameResults[playerIdFirst].push_back(std::tuple<int, int, int>(gameResult.scorePlayerA, gameResult.scorePlayerB, playerIdFirst == gameResult.winnerId));
-	int roundAPlayed = allGameResults[playerIdFirst].size();
-	playedRound[roundAPlayed]++;
-	allGameResults[PlayerIdSecond].push_back(std::tuple<int, int, int>(gameResult.scorePlayerB, gameResult.scorePlayerA, PlayerIdSecond == gameResult.winnerId));
-	int roundBPlayed = allGameResults[PlayerIdSecond].size();
-	playedRound[roundBPlayed]++;
+	allGameResults[playerIdFirst].push_back(std::make_tuple(gameResult.scorePlayerA, gameResult.scorePlayerB, gameResult.winnerId == 0 ? 1 : 0));
+	int currentRound_playerA = allGameResults[playerIdFirst].size();
+	playedRound[currentRound_playerA - 1]++;
 
-	while (playedRound[m_currentRound] == m_numOfPlayers) {
+	allGameResults[PlayerIdSecond].push_back(std::make_tuple(gameResult.scorePlayerB, gameResult.scorePlayerA, gameResult.winnerId == 1 ? 1 : 0));
+	int currentRound_playerB = allGameResults[PlayerIdSecond].size();
+	playedRound[currentRound_playerB - 1]++;
+
+	if (playedRound[m_currentRound] == m_numOfPlayers) {
 		updateScoreBalanceTable();
 	}
 	
@@ -334,22 +336,23 @@ void TournamentManager::updateScoreBalanceTable()
 {
 	for (auto i = 0; i < m_numOfPlayers; i++) {
 		// update the Wins & Losses cols
-		std::get<1>(scoreBalance[i]) += std::get<2>(allGameResults[i][m_currentRound]); //update number of wins
-		std::get<2>(scoreBalance[i]) += !std::get<2>(allGameResults[i][m_currentRound]); //update number of loses
+		std::get<2>(allGameResults[i][m_currentRound]) == 1 ? std::get<1>(scoreBalance[i])++ : std::get<2>(scoreBalance[i])++;
 
 		// Update the % col
-		std::get<3>(scoreBalance[i]) = (std::get<1>(scoreBalance[i]) / (m_currentRound + 1)) * 100;
+		std::get<3>(scoreBalance[i]) = (std::get<1>(scoreBalance[i]) / (std::get<1>(scoreBalance[i]) + std::get<2>(scoreBalance[i]))) * 100;
 
 		// update the Pts For & Pts Against cols
 		std::get<4>(scoreBalance[i]) += std::get<0>(allGameResults[i][m_currentRound]);
 		std::get<5>(scoreBalance[i]) += std::get<1>(allGameResults[i][m_currentRound]);
 	}
+
 	m_currentRound++;
-	if (m_currentRound == m_numOfPlayers / m_numOfGames)
+
+	if (m_currentRound == m_numOfGames / m_numOfPlayers)
 	{
-		finishCyclesCV.notify_one();
+		finishAllCyclesCV.notify_one();
 	}
-	//TODO wake up the thread that prints to screen the score balance 
+
 }
 
 
@@ -398,9 +401,11 @@ void TournamentManager::singleThreadMethod()
 		if (firstPlayerId == -1 && secondPlayerId == -1 && boardId == -1)
 			break;
 
-		/* Create a gameManager and run it with both players and board.*/
-		GameManager gameManager(std::move(playersVector[firstPlayerId]),
-			std::move(playersVector[secondPlayerId]),
+		/* Create the two players, and a gameManager - and run it with both players and board.*/
+		std::unique_ptr<IBattleshipGameAlgo> playerA(std::get<2>(dll_vec[firstPlayerId])());
+		std::unique_ptr<IBattleshipGameAlgo> playerB(std::get<2>(dll_vec[secondPlayerId])());
+
+		GameManager gameManager(std::move(playerA), std::move(playerB),
 			boardsVector[boardId]);
 		auto gameResult = gameManager.runGame();
 

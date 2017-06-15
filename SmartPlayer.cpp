@@ -1,9 +1,6 @@
 #include "SmartPlayer.h"
-#include <iostream> // TODO: this is only for debug prints, remove before submission
 
-
-SmartPlayer::SmartPlayer() : m_board(nullptr),
-							 m_id(-1),
+SmartPlayer::SmartPlayer() : m_id(-1),
                              m_state(State::Search),
 							 m_last_good_attack(0, 0, 0),
                              m_cur_first_found(0, 0, 0),
@@ -15,7 +12,6 @@ SmartPlayer::SmartPlayer() : m_board(nullptr),
 
 SmartPlayer::~SmartPlayer()
 {
-	std::cout << "in Dtor of SmartPlayer - should get here BEFORE BoardData is dead!!!" << std::endl; // TODO: DELETE
 }
 
 void SmartPlayer::setPlayer(int player)
@@ -26,26 +22,25 @@ void SmartPlayer::setPlayer(int player)
 void SmartPlayer::setBoard(const BoardData& board)
 {
 	// initialize player's members for a new board:
-	m_board = &board;
 	m_state = State::Search;
 	m_potential_attacks.clear();
-	init_potential_attacks();
-	findShips();
+	init_potential_attacks(board);
+	findShips(board);
 	m_last_good_attack = m_cur_first_found = m_ship_edge = Coordinate(0, 0, 0);
 	m_first_found_set.clear();
 	m_oponent_ship.clearLocations();
 }
 
-void SmartPlayer::init_potential_attacks()
+void SmartPlayer::init_potential_attacks(const BoardData& board)
 {
-	for (auto i = 1; i <= m_board->rows(); ++i)
+	for (auto i = 1; i <= board.rows(); ++i)
 	{
-		for (auto j = 1; j <= m_board->cols(); ++j)
+		for (auto j = 1; j <= board.cols(); ++j)
 		{
-			for (auto k = 1; k <= m_board->depth(); ++k)
+			for (auto k = 1; k <= board.depth(); ++k)
 			{
 				Coordinate cur(i, j, k);
-				if (m_board->charAt(cur) == ' ')
+				if (board.charAt(cur) == ' ')
 				{
 					m_potential_attacks.insert(cur);
 				}
@@ -313,17 +308,17 @@ bool SmartPlayer::set_search_and_erase(const Coordinate& val, std::set<Coordinat
 	return false;
 }
 
-bool SmartPlayer::isLegalSeqHorz(int r, int c, int d, std::vector<Coordinate>& locations)
+void SmartPlayer::remove_illegal_horz(int r, int c, int d, std::vector<Coordinate>& locations, const BoardData& board)
 {
 	auto len = 0;
-	auto type = m_board->charAt(Coordinate(r, c, d));
+	auto type = board.charAt(Coordinate(r, c, d));
 	if (c > 1)
 	{
 		set_search_and_erase(Coordinate(r, c - 1, d), m_potential_attacks);
 	}
-	for (auto k = c; k <= m_board->cols(); k++)
+	for (auto k = c; k <= board.cols(); k++)
 	{
-		auto cur = m_board->charAt(Coordinate(r, k, d));
+		auto cur = board.charAt(Coordinate(r, k, d));
 		if (cur != type)
 		{
 			set_search_and_erase(Coordinate(r, k, d), m_potential_attacks);
@@ -336,22 +331,20 @@ bool SmartPlayer::isLegalSeqHorz(int r, int c, int d, std::vector<Coordinate>& l
 		locations.push_back(Coordinate(r, k, d));
 		len++;
 	}
-
-	return BattleShip::isLegalShip(type, len);
 }
 
 
-bool SmartPlayer::isLegalSeqVert(int r, int c, int d, std::vector<Coordinate>& locations)
+void SmartPlayer::remove_illegal_vert(int r, int c, int d, std::vector<Coordinate>& locations, const BoardData& board)
 {
 	auto len = 0;
-	auto type = m_board->charAt(Coordinate(r, c, d));
+	auto type = board.charAt(Coordinate(r, c, d));
 	if (r > 1)
 	{
 		set_search_and_erase(Coordinate(r - 1, c, d), m_potential_attacks);
 	}
-	for (auto k = r; k <= m_board->rows(); k++)
+	for (auto k = r; k <= board.rows(); k++)
 	{
-		auto cur = m_board->charAt(Coordinate(k, c, d));
+		auto cur = board.charAt(Coordinate(k, c, d));
 		if (cur != type)
 		{
 			set_search_and_erase(Coordinate(k, c, d), m_potential_attacks);
@@ -364,22 +357,20 @@ bool SmartPlayer::isLegalSeqVert(int r, int c, int d, std::vector<Coordinate>& l
 		locations.push_back(Coordinate(k, c, d));
 		len++;
 	}
-
-	return BattleShip::isLegalShip(type, len);
 }
 
 
-bool SmartPlayer::isLegalSeqDeep(int r, int c, int d, std::vector<Coordinate>& locations)
+void SmartPlayer::remove_illegal_deep(int r, int c, int d, std::vector<Coordinate>& locations, const BoardData& board)
 {
 	auto len = 0;
-	auto type = m_board->charAt(Coordinate(r, c, d));
+	auto type = board.charAt(Coordinate(r, c, d));
 	if (d > 1)
 	{
 		set_search_and_erase(Coordinate(r, c, d - 1), m_potential_attacks);
 	}
-	for (auto k = d; k <= m_board->depth(); k++)
+	for (auto k = d; k <= board.depth(); k++)
 	{
-		char cur = m_board->charAt(Coordinate(r, c, k));
+		char cur = board.charAt(Coordinate(r, c, k));
 		if (cur != type)
 		{
 			set_search_and_erase(Coordinate(r, c, k), m_potential_attacks);
@@ -392,32 +383,30 @@ bool SmartPlayer::isLegalSeqDeep(int r, int c, int d, std::vector<Coordinate>& l
 		locations.push_back(Coordinate(r, c, k));
 		len++;
 	}
-
-	return BattleShip::isLegalShip(type, len);
 }
 
 
-void SmartPlayer::findShips()
+void SmartPlayer::findShips(const BoardData& board)
 {
-	for (auto k = 1; k <= m_board->depth(); k++)
+	for (auto k = 1; k <= board.depth(); k++)
 	{
-		for (auto i = 1; i <= m_board->rows(); i++)
+		for (auto i = 1; i <= board.rows(); i++)
 		{
-			for (auto j = 1; j <= m_board->cols(); j++)
+			for (auto j = 1; j <= board.cols(); j++)
 			{
-				auto type = m_board->charAt(Coordinate(i, j, k));
+				auto type = board.charAt(Coordinate(i, j, k));
 				if (type == ' ') continue;
 				/*enter <if> only if cell is not empty and
 				*is not part of a sequence that was already checked(from above or left or within)*/
 				if (type != ' ' &&
-					(i == 1 || m_board->charAt(Coordinate(i - 1, j, k)) != type) &&
-					(j == 1 || m_board->charAt(Coordinate(i, j - 1, k)) != type) &&
-					(k == 1 || m_board->charAt(Coordinate(i, j, k - 1)) != type))
+					(i == 1 || board.charAt(Coordinate(i - 1, j, k)) != type) &&
+					(j == 1 || board.charAt(Coordinate(i, j - 1, k)) != type) &&
+					(k == 1 || board.charAt(Coordinate(i, j, k - 1)) != type))
 				{
 					std::vector<Coordinate> locV, locH, locD;
-					bool vert = isLegalSeqVert(i, j, k, locV);
-					bool horz = isLegalSeqHorz(i, j, k, locH);
-					bool deep = isLegalSeqDeep(i, j, k, locD);
+					remove_illegal_vert(i, j, k, locV, board);
+					remove_illegal_horz(i, j, k, locH, board);
+					remove_illegal_deep(i, j, k, locD, board);
 				}
 			}
 		}

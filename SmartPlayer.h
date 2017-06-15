@@ -16,7 +16,6 @@ class SmartPlayer : public IBattleshipGameAlgo
 	};
 
 	// class members
-	const BoardData* m_board;
 	int m_id;
 	State m_state; // algorithm state
 	std::set< Coordinate > m_potential_attacks; // potential attack moves set
@@ -25,20 +24,25 @@ class SmartPlayer : public IBattleshipGameAlgo
 	std::set< Coordinate > m_first_found_set; // first location found of an oponent's ship (potentially), to be attacked later
 	Coordinate m_ship_edge;
 	std::mt19937 m_generator; //for random search
-	//std::vector<BattleShip> m_oponent_ships; // TODO: check if needed
-	BattleShip m_oponent_ship; // TODO: check if needed
+	BattleShip m_oponent_ship;
 
 	// class private functions
 	/**
 	 * Push all potential attack moves to m_potential_attacks set. This function MUST be called after calling m_player.commonSetBoard()
 	 */
-	void init_potential_attacks();
+	void init_potential_attacks(const BoardData& board);
 
-	
 	/**
 	 * \brief finds all player's on board and removes illegal ships locations from m_potential_attacks set accordingly.
 	 */
-	void findShips(); // TODO
+	void findShips(const BoardData& board);
+
+	/*
+	* Utility functions called from findShis, to remove illegal ships locations from m_potential_attacks set accordingly.
+	*/
+	void remove_illegal_horz(int r, int c, int d, std::vector<Coordinate>& locations, const BoardData& board);
+	void remove_illegal_vert(int r, int c, int d, std::vector<Coordinate>& locations, const BoardData& board);
+	void remove_illegal_deep(int r, int c, int d, std::vector<Coordinate>& locations, const BoardData& board);
 
 	/**
 	 * \brief calculates a random attack move
@@ -120,12 +124,6 @@ class SmartPlayer : public IBattleshipGameAlgo
 	 * \return true if val was found in set, else false
 	 */
 	static bool set_search_and_erase(const Coordinate& val, std::set<Coordinate>& set);
-
-	bool isLegalSeqHorz(int r, int c, int d, std::vector<Coordinate>& locations);
-
-	bool isLegalSeqVert(int r, int c, int d, std::vector<Coordinate>& locations);
-
-	bool isLegalSeqDeep(int r, int c, int d, std::vector<Coordinate>& locations);
 
 public:
 	SmartPlayer();

@@ -29,12 +29,6 @@ class BoardData
 {
 public:
 	virtual ~BoardData() = default;
-	
-	/* block copy and assignment - need to remove when done
-	* http://moodle.tau.ac.il/mod/forum/discuss.php?d=61791 */
-	//BoardData(const BoardData&) = delete;
-	//BoardData& operator=(const BoardData&) = delete;
-
 	virtual char charAt(Coordinate c) const = 0; //returns only selected players' chars
 
 	int rows()  const { return _rows; }

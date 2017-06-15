@@ -254,7 +254,7 @@ bool TournamentManager::findDllFile(WIN32_FIND_DATAA& fileData, HINSTANCE& hDll,
 		return false;
 
 	// Get function pointer
-	getPlayerFunc = reinterpret_cast<GetPlayerFuncType>(GetProcAddress(hDll, "GetAlgorithm"));
+	GetPlayerFuncType getPlayerFunc = reinterpret_cast<GetPlayerFuncType>(GetProcAddress(hDll, "GetAlgorithm"));
 	if (!getPlayerFunc)
 		return false;
 
@@ -327,7 +327,7 @@ void TournamentManager::updateScoreBalanceTable()
 		std::get<2>(allGameResults[i][m_currentRound]) == 1 ? std::get<1>(scoreBalance[i])++ : std::get<2>(scoreBalance[i])++;
 
 		// Update the % col
-		std::get<3>(scoreBalance[i]) = (std::get<1>(scoreBalance[i]) / (std::get<1>(scoreBalance[i]) + std::get<2>(scoreBalance[i]))) * 100;
+		std::get<3>(scoreBalance[i]) = (static_cast<double>(std::get<1>(scoreBalance[i])) / (std::get<1>(scoreBalance[i]) + std::get<2>(scoreBalance[i]))) * 100;
 
 		// update the Pts For & Pts Against cols
 		std::get<4>(scoreBalance[i]) += std::get<0>(allGameResults[i][m_currentRound]);
@@ -389,12 +389,12 @@ void TournamentManager::singleThreadMethod()
 		std::unique_ptr<IBattleshipGameAlgo> playerA(std::get<2>(dll_vec[firstPlayerId])());
 		std::unique_ptr<IBattleshipGameAlgo> playerB(std::get<2>(dll_vec[secondPlayerId])());
 
-		GameManager gameManager(std::move(playerA), std::move(playerB),
-			boardsVector[boardId]);
+		GameManager gameManager(std::move(playerA), std::move(playerB), boardsVector[boardId]);
 		auto gameResult = gameManager.runGame();
 
 		//std::cout << "Run a Game!" << std::endl; //TODO - Remove before submission
-
+		CLogger::GetLogger()->Log("Game result: playerA = %d, playerB = %d, boardID = %d, points for A = %d, points for B = %d, winner = %d", 
+			firstPlayerId, secondPlayerId, boardId, gameResult.scorePlayerA, gameResult.scorePlayerB, gameResult.winnerId);
 		/* update the gameResult to the current cycle score chart */
 		updateScoreBalance(firstPlayerId, secondPlayerId, gameResult);
 

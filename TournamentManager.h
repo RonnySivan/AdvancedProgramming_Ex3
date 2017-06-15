@@ -11,6 +11,7 @@
 //#include <iomanip> // for print_scores //TODO: unused?
 //#include <algorithm> // for print_scores + std::random_shuffle //TODO: unused?
 #include <windows.h>
+#include <atomic>
 
 #define DEFAULT_THREADS_NUM 4
 
@@ -43,7 +44,7 @@ class TournamentManager
 
 	// define function of the type we expect from IBattleshipGameAlgo
 	typedef IBattleshipGameAlgo *(*GetPlayerFuncType)();
-	GetPlayerFuncType getPlayerFunc;
+	//GetPlayerFuncType getPlayerFunc; //TODO do we need it here?
 
 	// vector of <Player Name, dll handle, GetPlayer function ptr>
 	std::vector<std::tuple<std::string, HINSTANCE, GetPlayerFuncType>> dll_vec;

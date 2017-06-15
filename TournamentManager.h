@@ -11,6 +11,7 @@
 #include <memory>
 #include <iomanip> // for print_scores
 #include <algorithm> // for print_scores + std::random_shuffle
+#include <atomic>
 
 #define DEFAULT_THREADS_NUM 4
 
@@ -23,7 +24,7 @@ class TournamentManager
 	int m_numOfPlayers;
 	int m_numOfGames;
 	int m_numOfCycles;
-
+	std::atomic<bool> wakeMain;
 	std::mutex m_scoreBalanceMutex; //update the score Balance - each thread at his time.
 	std::mutex m_getGameMutex; // get the first game representation from the gameSchedule deque (so no two threads taking the same game).
 	std::mutex m_startThreadsMutex; // Start the threads action at the same time.

@@ -220,8 +220,9 @@ void TournamentManager::startTournament()
 	/* After each cycle finished - update and print the score table */
 	while (m_currentRound < m_numOfCycles){
 		std::unique_lock<std::mutex> lock(m_finishOneCycleMutex);
-		finishOneCyclesCV.wait(lock, [this] {return false;  });
+		finishOneCyclesCV.wait(lock, [this] {return wakeMain.load();  });
 		updateScoreBalanceTable();
+		wakeMain = false;
 	}
 
 	/* Wait for all threads */
@@ -303,7 +304,8 @@ void TournamentManager::updateScoreBalance(int playerIdFirst, int PlayerIdSecond
 	int currentRound_playerB = allGameResults[PlayerIdSecond].size();
 	playedRound[currentRound_playerB - 1]++;
 
-	if (playedRound[m_currentRound] == m_numOfPlayers) {
+	while (playedRound[m_currentRound] == m_numOfPlayers) {
+		wakeMain = true;
 		finishOneCyclesCV.notify_all();
 	}
 	
@@ -384,7 +386,7 @@ void TournamentManager::singleThreadMethod()
 			boardsVector[boardId]);
 		auto gameResult = gameManager.runGame();
 
-		std::cout << "Run a Game!" << std::endl; //TODO - Remove before submission
+		//std::cout << "Run a Game!" << std::endl; //TODO - Remove before submission
 
 		/* update the gameResult to the current cycle score chart */
 		updateScoreBalance(firstPlayerId, secondPlayerId, gameResult);

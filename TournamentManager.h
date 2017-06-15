@@ -27,14 +27,14 @@ class TournamentManager
 	std::mutex m_getGameMutex; // get the first game representation from the gameSchedule deque (so no two threads taking the same game).
 	std::mutex m_startThreadsMutex; // Start the threads action at the same time.
 	std::mutex m_finishCyclesMutex; 
-	std::condition_variable finishCyclesCV;
+	std::condition_variable finishAllCyclesCV;
 
 	volatile bool startThreads = false; 
 	std::condition_variable startThreadsCV;
 
+	std::vector<std::vector<std::tuple<int, int, int>>> allGameResults; //<points gained, points lost, has won?>
 	std::vector<std::tuple<std::string, int, int, double, int, int>> scoreBalance; // name, wins, loses, percent, pts_for, pts_against
 	int m_currentRound;
-	std::vector<std::vector<std::tuple<int, int, int>>> allGameResults; //<points gained, points lost, has won?>
 	std::vector<int> playedRound;
 	std::deque<std::tuple<int , int , int>> tournamentSchedule;
 

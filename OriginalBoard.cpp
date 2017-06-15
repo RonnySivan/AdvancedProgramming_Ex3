@@ -304,21 +304,22 @@ void OriginalBoard::findShips(bool errorsInBoard[numOfBoardErrors], std::vector<
 
 void OriginalBoard::isSameShips(std::string& errorsStr)
 {
-	int countAShipsTypes[] = { 0 };
-	int countBShipsTypes[] = { 0 };
+	int countAShipsTypes[4] = { 0 };
+	int countBShipsTypes[4] = { 0 };
 	for (BattleShip& b : _battleShipsA)
 	{
-		countAShipsTypes[convertTypeToInt(b)];
+		countAShipsTypes[convertTypeToInt(b)]++;
 	}
 	for (BattleShip& b : _battleShipsB)
 	{
-		countBShipsTypes[convertTypeToInt(b)];
+		countBShipsTypes[convertTypeToInt(b)]++;
 	}
 	for (auto i = 0; i < 4; i++)
 	{
 		if (countAShipsTypes[i] != countBShipsTypes[i])
 		{
 			errorsStr.append("Players do not have the same ships\n");
+			return;
 		}
 	}
 }

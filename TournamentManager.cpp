@@ -1,4 +1,11 @@
 ﻿#include "TournamentManager.h"
+#include "Logger.h"
+#include <condition_variable> //for threads management
+#include <iomanip> // for print_scores
+#include <algorithm> // for print_scores + std::random_shuffle
+#include <iostream>
+#include <fstream>
+
 
 TournamentManager::TournamentManager() :
 	m_path(""), m_threads(DEFAULT_THREADS_NUM), m_numOfPlayers(0), m_numOfGames(0), m_numOfCycles(0), m_currentRound(0)

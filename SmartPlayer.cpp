@@ -1,4 +1,5 @@
 #include "SmartPlayer.h"
+#include "Util.h"
 
 SmartPlayer::SmartPlayer() : m_id(-1),
                              m_state(State::Search),

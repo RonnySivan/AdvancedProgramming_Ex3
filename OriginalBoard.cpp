@@ -1,6 +1,7 @@
 #include "OriginalBoard.h"
 #include <cctype>
-
+#include <fstream>
+#include <algorithm>
 
 /*static functions*/
 

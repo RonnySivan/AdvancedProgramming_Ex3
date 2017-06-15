@@ -1,12 +1,9 @@
 #pragma once
-#include <utility> // for std::pair
 #include <vector>
 #include <set>
 #include <random>
-#include <algorithm>
 #include "IBattleshipGameAlgo.h"
 #include "Battleship.h"
-#include "Util.h"
 
 class SmartPlayer : public IBattleshipGameAlgo
 {

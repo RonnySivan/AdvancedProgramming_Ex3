@@ -1,12 +1,12 @@
 #pragma once
 
-#include "IBattleshipGameAlgo.h"
-
-#include "BattleShip.h"
-#include "Util.h"
 #include <vector>
 #include <map>
 #include <string.h>
+#include "IBattleshipGameAlgo.h"
+#include "BattleShip.h"
+#include "Util.h"
+
 
 
 #define boardErrorWrongSizeForShipB 0
@@ -29,7 +29,6 @@
 
 class OriginalBoard : public BoardData
 {
-private:
 	std::map<Coordinate, char> _boardMap;
 	std::vector<BattleShip> _battleShipsA;
 	std::vector<BattleShip> _battleShipsB;
@@ -55,7 +54,7 @@ private:
 	*recieves path for file containing board
 	*updates the general board and the boards for both players
 	*/
-	bool parseBoards(const std::string& boardPath);
+	bool parseBoards(const std::string& boardPath, std::string& errMsg);
 
 
 	void isEmptyNeighbors(int r, int c, int d, bool checkVert, bool checkHorz, bool checkDepth, 
@@ -97,6 +96,21 @@ private:
 	* saves to <errorsInBoard? all errors found on board
 	*/
 	void findShips(bool errorsInBoard[numOfBoardErrors], std::vector<BattleShip>& ships);
+
+	/*
+	 * if type of ship b is
+	 * - 'b' - return 0
+	 * - 'p' - return 1
+	 * - 'm' - return 2
+	 * - otherwise: - 'd' - return 3 
+	 */
+	static int convertTypeToInt(BattleShip& b);
+
+
+	/*
+	 * return true if both players has the same amount of the same ships
+	 */
+	void isSameShips(std::string& errorsStr);
 
 
 	/*

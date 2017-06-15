@@ -1,5 +1,26 @@
 #include "OriginalBoard.h"
+#include <cctype>
 
+
+/*static functions*/
+
+int OriginalBoard::convertTypeToInt(BattleShip& b)
+{
+	switch (std::tolower(b.getType()))
+	{
+	case 'b':
+		return 0;
+	case 'p':
+		return 1;
+	case 'm':
+		return 2;
+	default:
+		return 3;
+	}
+}
+
+
+/*member private functions*/
 
 int OriginalBoard::typeToErr(char type) {
 	if (type == 'B')
@@ -73,7 +94,7 @@ void OriginalBoard::parseLine(std::string& line, int depth, int row)
 }
 
 
-bool OriginalBoard::parseBoards(const std::string& boardPath) {
+bool OriginalBoard::parseBoards(const std::string& boardPath, std::string& errMsg) {
 	std::string line;
 	std::ifstream fin(boardPath);
 
@@ -81,17 +102,9 @@ bool OriginalBoard::parseBoards(const std::string& boardPath) {
 		//std::cout << "Error: Cannot open *.sboard file in " << boardPath << std::endl;
 		return false;
 	}
-	if (getline(fin, line))
+	if (! getline(fin, line) || ! getBoardSize(line))
 	{
-		if (! getBoardSize(line))
-		{
-			//Util::printToLogger("Board size given is illegal");
-			return false;
-		}
-	}
-	else
-	{
-		//Util::printToLogger("Board size given is illegal");
+		errMsg.append("Board size given is illegal\n");
 		return false;
 	}
 
@@ -289,6 +302,29 @@ void OriginalBoard::findShips(bool errorsInBoard[numOfBoardErrors], std::vector<
 }
 
 
+void OriginalBoard::isSameShips(std::string& errorsStr)
+{
+	int countAShipsTypes[] = { 0 };
+	int countBShipsTypes[] = { 0 };
+	for (BattleShip& b : _battleShipsA)
+	{
+		countAShipsTypes[convertTypeToInt(b)];
+	}
+	for (BattleShip& b : _battleShipsB)
+	{
+		countBShipsTypes[convertTypeToInt(b)];
+	}
+	for (auto i = 0; i < 4; i++)
+	{
+		if (countAShipsTypes[i] != countBShipsTypes[i])
+		{
+			errorsStr.append("Players do not have the same ships\n");
+		}
+	}
+}
+
+
+
 bool OriginalBoard::isLegalBoard(std::string& errorsMsg) {
 	bool errors[numOfBoardErrors] = { false };
 	std::vector<BattleShip> ships;
@@ -309,12 +345,19 @@ bool OriginalBoard::isLegalBoard(std::string& errorsMsg) {
 }
 
 
+/*public member functions*/
+
 bool OriginalBoard::createBoards(const std::string& path, std::string& errorsStr) {
 
-	if (! parseBoards(path))
+	if (! parseBoards(path, errorsStr))
 		return false;
 
-	return isLegalBoard(errorsStr);
+	if (isLegalBoard(errorsStr))
+	{
+		isSameShips(errorsStr);
+		return true;
+	}
+	return false;
 }
 
 

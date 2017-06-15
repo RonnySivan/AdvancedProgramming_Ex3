@@ -418,8 +418,8 @@ void TournamentManager::getGame(std::tuple<int, int, int>& game)
 	if (!tournamentSchedule.empty())
 	{
 		m_getGameMutex.lock();
-		game = tournamentSchedule.back();
-		tournamentSchedule.pop_back();
+		game = tournamentSchedule.front();
+		tournamentSchedule.pop_front();
 		m_getGameMutex.unlock();
 	}
 }

@@ -275,11 +275,11 @@ void TournamentManager::print_scores(const std::vector<std::tuple<std::string, i
 	auto it = std::max_element(scores.begin(), scores.end(), [](auto const &t1, auto const &t2) {
 		return std::get<0>(t1) > std::get<0>(t2); // TODO: verify if should be > or <!
 	});
-	size_t max_name_size = std::get<0>(*it).length();
+	auto max_name_size = std::get<0>(*it).length();
 
 	// sort according to highest percent of wins - map them to vector indexes
 	std::map<double, int, std::greater<double>> percent_of_wins_map;
-	for (size_t i = 0; i < scores.size(); i++) {
+	for (auto i = 0; i < scores.size(); i++) {
 		percent_of_wins_map.insert({ std::get<3>(scores[i]), i });
 	}
 
@@ -307,11 +307,11 @@ void TournamentManager::updateScoreBalance(int playerIdFirst, int PlayerIdSecond
 	m_scoreBalanceMutex.lock();
 
 	allGameResults[playerIdFirst].push_back(std::make_tuple(gameResult.scorePlayerA, gameResult.scorePlayerB, gameResult.winnerId == 0 ? 1 : 0));
-	int currentRound_playerA = allGameResults[playerIdFirst].size();
+	auto currentRound_playerA = allGameResults[playerIdFirst].size();
 	playedRound[currentRound_playerA - 1]++;
 
 	allGameResults[PlayerIdSecond].push_back(std::make_tuple(gameResult.scorePlayerB, gameResult.scorePlayerA, gameResult.winnerId == 1 ? 1 : 0));
-	int currentRound_playerB = allGameResults[PlayerIdSecond].size();
+	auto currentRound_playerB = allGameResults[PlayerIdSecond].size();
 	playedRound[currentRound_playerB - 1]++;
 
 	while (playedRound[m_currentRound] == m_numOfPlayers) {

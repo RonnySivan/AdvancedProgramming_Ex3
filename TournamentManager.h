@@ -20,10 +20,10 @@ class TournamentManager
 {
 	std::string m_path;
 	std::vector<std::string> m_allFilesInDir;
-	int m_threads;
-	int m_numOfPlayers;
-	int m_numOfGames;
-	int m_numOfCycles;
+	size_t m_threads;
+	size_t m_numOfPlayers;
+	size_t m_numOfGames;
+	size_t m_numOfCycles;
 	std::atomic<bool> wakeMain;
 	std::mutex m_scoreBalanceMutex; //update the score Balance - each thread at his time.
 	std::mutex m_getGameMutex; // get the first game representation from the gameSchedule deque (so no two threads taking the same game).

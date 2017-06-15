@@ -1,7 +1,7 @@
 ﻿#include "TournamentManager.h"
 
 TournamentManager::TournamentManager() :
-	m_path(""), m_threads(DEFAULT_THREADS_NUM), m_numOfPlayers(0), m_numOfGames(0), m_currentRound(0)
+	m_path(""), m_threads(DEFAULT_THREADS_NUM), m_numOfPlayers(0), m_numOfGames(0), m_numOfCycles(0), m_currentRound(0)
 {
 	CLogger::GetLogger()->Log("The program began running!");
 }
@@ -205,32 +205,7 @@ void TournamentManager::startTournament()
 {
 	std::cout << "Number of legal players: " << m_numOfPlayers << std::endl;
 	std::cout << "Number of legal boards: " << boardsVector.size() << std::endl;
-
-	/* Create the scoreBalance chart */
-	for (auto player: dll_vec)
-	{
-		auto playerName = std::get<0>(player);
-		scoreBalance.push_back(std::make_tuple(playerName , 0, 0, 0.0, 0, 0));
-		allGameResults.push_back(std::vector<std::tuple<int, int, int>>());
-	}
-
-	/* Create the Games-Schedule */
-	createTournamentSchedule();
-	m_numOfGames = tournamentSchedule.size();
-	for (auto i=0; i < m_numOfGames / m_numOfPlayers  ; ++i )
-	{
-		playedRound.push_back(0);
-	}
-
-	/* If there are too much threads (more than optionl games) - we don't need to use all of the threads */
-	if (m_threads > m_numOfGames)
-		m_threads = m_numOfGames;
-
-	/* Insert custom game-representation objects, to mark the end of the gameSchedule */
-	for (auto i=0; i<m_threads; ++i)
-	{
-		tournamentSchedule.push_back(std::make_tuple(-1,-1,-1));
-	}
+	prepareTournamentVariables();
 
 	// Start the tournament using m_threads threads
 	std::vector<std::thread> vec_threads(m_threads);
@@ -238,14 +213,18 @@ void TournamentManager::startTournament()
 		t = std::thread(&TournamentManager::singleThreadMethod, this);
 	}
 
-	// fire the "start" signal for all threads
+	/* fire the "start" signal for all threads */
 	startThreads = true;
 	startThreadsCV.notify_all();
 
-	// wait until all games cycles finish
-	std::unique_lock<std::mutex> lock(m_finishCyclesMutex);
-	finishAllCyclesCV.wait(lock, [this] {return m_currentRound == m_numOfGames / m_numOfPlayers; });
+	/* After each cycle finished - update and print the score table */
+	while (m_currentRound < m_numOfCycles){
+		std::unique_lock<std::mutex> lock(m_finishOneCycleMutex);
+		finishOneCyclesCV.wait(lock, [this] {return false;  });
+		updateScoreBalanceTable();
+	}
 
+	/* Wait for all threads */
 	for (auto & t : vec_threads) {
 		t.join();
 	}
@@ -325,7 +304,7 @@ void TournamentManager::updateScoreBalance(int playerIdFirst, int PlayerIdSecond
 	playedRound[currentRound_playerB - 1]++;
 
 	if (playedRound[m_currentRound] == m_numOfPlayers) {
-		updateScoreBalanceTable();
+		finishOneCyclesCV.notify_all();
 	}
 	
 	m_scoreBalanceMutex.unlock();
@@ -347,11 +326,7 @@ void TournamentManager::updateScoreBalanceTable()
 	}
 
 	m_currentRound++;
-
-	if (m_currentRound == m_numOfGames / m_numOfPlayers)
-	{
-		finishAllCyclesCV.notify_one();
-	}
+	print_scores(scoreBalance);
 
 }
 
@@ -427,4 +402,38 @@ void TournamentManager::getGame(std::tuple<int, int, int>& game)
 		tournamentSchedule.pop_front();
 		m_getGameMutex.unlock();
 	}
+}
+
+void TournamentManager::prepareTournamentVariables()
+{
+
+	/* Create the scoreBalance chart */
+	for (auto player : dll_vec)
+	{
+		auto playerName = std::get<0>(player);
+		scoreBalance.push_back(std::make_tuple(playerName, 0, 0, 0.0, 0, 0));
+		allGameResults.push_back(std::vector<std::tuple<int, int, int>>());
+	}
+
+	/* Create the Games-Schedule */
+	createTournamentSchedule();
+	m_numOfGames = tournamentSchedule.size();
+	m_numOfCycles = m_numOfGames / m_numOfPlayers;
+
+	/* Initialize the "playedRound" variable - how many players played each round */
+	for (auto i = 0; i < m_numOfCycles; ++i)
+	{
+		playedRound.push_back(0);
+	}
+
+	/* If there are too much threads (more than optionl games) - we don't need to use all of the threads */
+	if (m_threads > m_numOfGames)
+		m_threads = m_numOfGames;
+
+	/* Insert custom game-representation objects, to mark the end of the gameSchedule */
+	for (auto i = 0; i < m_threads; ++i)
+	{
+		tournamentSchedule.push_back(std::make_tuple(-1, -1, -1));
+	}
+
 }

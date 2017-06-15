@@ -209,13 +209,18 @@ void TournamentManager::startTournament()
 	/* Create the scoreBalance chart */
 	for (auto player: dll_vec)
 	{
-		auto fileName = std::get<0>(player);
-		scoreBalance.push_back(std::make_tuple(fileName , 0, 0, 0.0, 0, 0));
+		auto playerName = std::get<0>(player);
+		scoreBalance.push_back(std::make_tuple(playerName , 0, 0, 0.0, 0, 0));
+		allGameResults.push_back(std::vector<std::tuple<int, int, int>>());
 	}
 
 	/* Create the Games-Schedule */
 	createTournamentSchedule();
 	m_numOfGames = tournamentSchedule.size();
+	for (auto i=0; i < m_numOfGames / m_numOfPlayers  ; ++i )
+	{
+		playedRound.push_back(0);
+	}
 
 	/* If there are too much threads (more than optionl games) - we don't need to use all of the threads */
 	if (m_threads > m_numOfGames)
@@ -239,7 +244,7 @@ void TournamentManager::startTournament()
 
 	// wait until all games cycles finish
 	std::unique_lock<std::mutex> lock(m_finishCyclesMutex);
-	finishCyclesCV.wait(lock, [this] {return m_currentRound == m_numOfGames / m_numOfPlayers; });
+	finishAllCyclesCV.wait(lock, [this] {return m_currentRound == m_numOfGames / m_numOfPlayers; });
 
 	for (auto & t : vec_threads) {
 		t.join();
@@ -311,14 +316,15 @@ void TournamentManager::updateScoreBalance(int playerIdFirst, int PlayerIdSecond
 {
 	m_scoreBalanceMutex.lock();
 
-	allGameResults[playerIdFirst].push_back(std::tuple<int, int, int>(gameResult.scorePlayerA, gameResult.scorePlayerB, playerIdFirst == gameResult.winnerId ? 1 : 0));
-	int roundAPlayed = allGameResults[playerIdFirst].size();
-	playedRound[roundAPlayed]++;
-	allGameResults[PlayerIdSecond].push_back(std::tuple<int, int, int>(gameResult.scorePlayerB, gameResult.scorePlayerA, PlayerIdSecond == gameResult.winnerId ? 1 : 0));
-	int roundBPlayed = allGameResults[PlayerIdSecond].size();
-	playedRound[roundBPlayed]++;
+	allGameResults[playerIdFirst].push_back(std::make_tuple(gameResult.scorePlayerA, gameResult.scorePlayerB, gameResult.winnerId == 0 ? 1 : 0));
+	int currentRound_playerA = allGameResults[playerIdFirst].size();
+	playedRound[currentRound_playerA - 1]++;
 
-	while (playedRound[m_currentRound] == m_numOfPlayers) {
+	allGameResults[PlayerIdSecond].push_back(std::make_tuple(gameResult.scorePlayerB, gameResult.scorePlayerA, gameResult.winnerId == 1 ? 1 : 0));
+	int currentRound_playerB = allGameResults[PlayerIdSecond].size();
+	playedRound[currentRound_playerB - 1]++;
+
+	if (playedRound[m_currentRound] == m_numOfPlayers) {
 		updateScoreBalanceTable();
 	}
 	
@@ -330,22 +336,23 @@ void TournamentManager::updateScoreBalanceTable()
 {
 	for (auto i = 0; i < m_numOfPlayers; i++) {
 		// update the Wins & Losses cols
-		std::get<1>(scoreBalance[i]) += std::get<2>(allGameResults[i][m_currentRound]); //update number of wins
-		std::get<2>(scoreBalance[i]) += !std::get<2>(allGameResults[i][m_currentRound]); //update number of loses
+		std::get<2>(allGameResults[i][m_currentRound]) == 1 ? std::get<1>(scoreBalance[i])++ : std::get<2>(scoreBalance[i])++;
 
 		// Update the % col
-		std::get<3>(scoreBalance[i]) = (std::get<1>(scoreBalance[i]) / (m_currentRound + 1)) * 100;
+		std::get<3>(scoreBalance[i]) = (std::get<1>(scoreBalance[i]) / (std::get<1>(scoreBalance[i]) + std::get<2>(scoreBalance[i]))) * 100;
 
 		// update the Pts For & Pts Against cols
 		std::get<4>(scoreBalance[i]) += std::get<0>(allGameResults[i][m_currentRound]);
 		std::get<5>(scoreBalance[i]) += std::get<1>(allGameResults[i][m_currentRound]);
 	}
+
 	m_currentRound++;
-	if (m_currentRound == m_numOfPlayers / m_numOfGames)
+
+	if (m_currentRound == m_numOfGames / m_numOfPlayers)
 	{
-		finishCyclesCV.notify_one();
+		finishAllCyclesCV.notify_one();
 	}
-	//TODO wake up the thread that prints to screen the score balance 
+
 }
 
 

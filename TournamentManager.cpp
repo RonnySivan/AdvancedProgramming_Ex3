@@ -1,7 +1,7 @@
 ﻿#include "TournamentManager.h"
 
 TournamentManager::TournamentManager() :
-	m_path(""), m_threads(DEFAULT_THREADS_NUM), m_numOfPlayers(0), m_currentRound(0)
+	m_path(""), m_threads(DEFAULT_THREADS_NUM), m_numOfPlayers(0), m_numOfGames(0), m_currentRound(0)
 {
 	CLogger::GetLogger()->Log("The program began running!");
 }
@@ -32,7 +32,7 @@ bool TournamentManager::initTournament(int argc, char* argv[])
 				try
 				{
 					auto threadsNum = std::stoi(argv[i + 1]);
-					if (threadsNum < 2)
+					if (threadsNum < 1)
 					{
 						CLogger::GetLogger()->Log("Error: threads parameter given is illegal");
 					}
@@ -228,7 +228,6 @@ void TournamentManager::startTournament()
 	}
 
 	// Start the tournament using m_threads threads
-	// TODO - DEBUG \ MOVE vec_threads TO BE A CLASS MEMBER? ETC...
 	std::vector<std::thread> vec_threads(m_threads);
 	for (auto & t : vec_threads) {
 		t = std::thread(&TournamentManager::singleThreadMethod, this);
@@ -242,9 +241,8 @@ void TournamentManager::startTournament()
 	std::unique_lock<std::mutex> lock(m_finishCyclesMutex);
 	finishCyclesCV.wait(lock, [this] {return m_currentRound == m_numOfGames / m_numOfPlayers; });
 
-	// TODO - join or detach the threads? 
 	for (auto & t : vec_threads) {
-//		t.detach();
+		t.join();
 	}
 
 	std::cout << "finish Running " << std::endl; //TODO - Remove before submission
@@ -269,8 +267,6 @@ bool TournamentManager::findDllFile(WIN32_FIND_DATAA& fileData, HINSTANCE& hDll,
 		return false;
 
 	dll_vec.push_back(std::make_tuple(playerName, hDll, getPlayerFunc));
-	std::unique_ptr<IBattleshipGameAlgo> player(std::get<2>(dll_vec.back())());
-	playersVector.push_back(std::move(player));
 
 	return true;
 }
@@ -315,10 +311,10 @@ void TournamentManager::updateScoreBalance(int playerIdFirst, int PlayerIdSecond
 {
 	m_scoreBalanceMutex.lock();
 
-	allGameResults[playerIdFirst].push_back(std::tuple<int, int, int>(gameResult.scorePlayerA, gameResult.scorePlayerB, playerIdFirst == gameResult.winnerId));
+	allGameResults[playerIdFirst].push_back(std::tuple<int, int, int>(gameResult.scorePlayerA, gameResult.scorePlayerB, playerIdFirst == gameResult.winnerId ? 1 : 0));
 	int roundAPlayed = allGameResults[playerIdFirst].size();
 	playedRound[roundAPlayed]++;
-	allGameResults[PlayerIdSecond].push_back(std::tuple<int, int, int>(gameResult.scorePlayerB, gameResult.scorePlayerA, PlayerIdSecond == gameResult.winnerId));
+	allGameResults[PlayerIdSecond].push_back(std::tuple<int, int, int>(gameResult.scorePlayerB, gameResult.scorePlayerA, PlayerIdSecond == gameResult.winnerId ? 1 : 0));
 	int roundBPlayed = allGameResults[PlayerIdSecond].size();
 	playedRound[roundBPlayed]++;
 
@@ -398,9 +394,11 @@ void TournamentManager::singleThreadMethod()
 		if (firstPlayerId == -1 && secondPlayerId == -1 && boardId == -1)
 			break;
 
-		/* Create a gameManager and run it with both players and board.*/
-		GameManager gameManager(std::move(playersVector[firstPlayerId]),
-			std::move(playersVector[secondPlayerId]),
+		/* Create the two players, and a gameManager - and run it with both players and board.*/
+		std::unique_ptr<IBattleshipGameAlgo> playerA(std::get<2>(dll_vec[firstPlayerId])());
+		std::unique_ptr<IBattleshipGameAlgo> playerB(std::get<2>(dll_vec[secondPlayerId])());
+
+		GameManager gameManager(std::move(playerA), std::move(playerB),
 			boardsVector[boardId]);
 		auto gameResult = gameManager.runGame();
 

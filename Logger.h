@@ -21,7 +21,7 @@ public:
 	*   Logs a message
 	*   @param sMessage message to be logged.
 	*/
-	static void Log(const std::string& sMessage);
+	static void Log(const std::string& sMessage); // TODO: unused?
 	/**
 	*   Variable Length Logger function
 	*   @param format string for the message to be logged.
@@ -31,7 +31,7 @@ public:
 	*   << overloaded function to Logs a message
 	*   @param sMessage message to be logged.
 	*/
-	CLogger& operator<<(const std::string& sMessage);
+	CLogger& operator<<(const std::string& sMessage); // TODO: check if we use it
 	/**
 	*   Funtion to create the instance of logger class.
 	*   @return singleton object of Clogger class..
@@ -51,13 +51,13 @@ private:
 	*   copy constructor for the Logger class.
 	*/
 	CLogger(const CLogger&) {};             // copy constructor is private
-											/**
-											*   assignment operator for the Logger class.
-											*/
+	/**
+	*   assignment operator for the Logger class.
+	*/
 	CLogger& operator=(const CLogger&) { return *this; };  // assignment operator is private
-														   /**
-														   *   Log file name.
-														   **/
+	/**
+	*   Log file name.
+	**/
 	static const std::string m_sFileName;
 	/**
 	*   Singleton logger class object pointer.

@@ -1,16 +1,17 @@
 #pragma once
 #include "Util.h"
 #include "GameManager.h"
-#include "Logger.h"
+//#include "Logger.h" //TODO: unused?
 
 #include <thread> //for threads management
 #include <mutex> //for threads management
-#include <condition_variable> //for threads management
+//#include <condition_variable> //for threads management //TODO: unused?
 #include <deque> //for threads management
 
 #include <memory>
-#include <iomanip> // for print_scores
-#include <algorithm> // for print_scores + std::random_shuffle
+//#include <iomanip> // for print_scores //TODO: unused?
+//#include <algorithm> // for print_scores + std::random_shuffle //TODO: unused?
+#include <windows.h>
 
 #define DEFAULT_THREADS_NUM 4
 

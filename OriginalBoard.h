@@ -2,7 +2,7 @@
 
 #include <vector>
 #include <map>
-#include <string.h>
+//#include <string.h> //TODO: unused?
 #include "IBattleshipGameAlgo.h"
 #include "BattleShip.h"
 #include "Util.h"

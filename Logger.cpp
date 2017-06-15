@@ -1,4 +1,6 @@
 #include "Logger.h"
+#include <cstdarg>
+#include <string>
 
 const std::string CLogger::m_sFileName = "game.log";
 CLogger* CLogger::m_pThis = nullptr;

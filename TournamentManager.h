@@ -20,11 +20,17 @@ class TournamentManager
 {
 	std::string m_path;
 	std::vector<std::string> m_allFilesInDir;
-	int m_threads;
-	int m_numOfPlayers;
+/*
+ 	int m_threads;
+	int m_numOfPlayers;*/
 	int m_numOfBoards;
-	int m_numOfGames;
+/*	int m_numOfGames;
 	int m_numOfCycles;
+*/
+	size_t m_threads;
+	size_t m_numOfPlayers;
+	size_t m_numOfGames;
+	size_t m_numOfCycles;
 	std::atomic<bool> wakeMain;
 	std::atomic<bool> finishedGames;
 	std::mutex m_scoreBalanceMutex; //update the score Balance - each thread at his time.
@@ -79,7 +85,7 @@ class TournamentManager
 	 * \brief prints tournament's scores according to the required format
 	 * \param scores vector holding the scores in the following tuple format: Team Name, Wins, Losses, %, Pts For, Pts Against
 	 */
-	void print_scores(std::vector< std::tuple< std::string, int, int, double, int, int > > scores) const;
+	void print_scores(const std::vector< std::tuple< std::string, int, int, double, int, int > >& scores) const;
 
 
 	/**

@@ -5,6 +5,7 @@
 #include <algorithm> // for print_scores + std::random_shuffle
 #include <iostream>
 #include <fstream>
+#include <map> // for print_scores
 
 
 TournamentManager::TournamentManager() :
@@ -269,7 +270,7 @@ bool TournamentManager::findDllFile(WIN32_FIND_DATAA& fileData, HINSTANCE& hDll,
 }
 
 
-void TournamentManager::print_scores(std::vector<std::tuple<std::string, int, int, double, int, int>> scores) const
+void TournamentManager::print_scores(const std::vector<std::tuple<std::string, int, int, double, int, int>>& scores) const
 {
 	std::string name;
 	int win, losses, pts_for, pts_against;
@@ -277,23 +278,24 @@ void TournamentManager::print_scores(std::vector<std::tuple<std::string, int, in
 
 	// find max name length for column width
 	auto it = std::max_element(scores.begin(), scores.end(), [](auto const &t1, auto const &t2) {
-		return std::get<0>(t1) < std::get<0>(t2);
+		return std::get<0>(t1) > std::get<0>(t2); // TODO: verify if should be > or <!
 	});
-	size_t max_name_size = std::get<0>(*it).length();
+	auto max_name_size = std::get<0>(*it).length();
 
-	// sort according to highest percent of wins
-	std::sort(begin(scores), end(scores), [](auto const &t1, auto const &t2) {
-		return std::get<3>(t1) > std::get<3>(t2);
-	});
+	// sort according to highest percent of wins - map them to vector indexes
+	std::map<double, int, std::greater<double>> percent_of_wins_map;
+	for (auto i = 0; i < scores.size(); i++) {
+		percent_of_wins_map.insert({ std::get<3>(scores[i]), i });
+	}
 
 	// print headlines
-	std::cout << "#\t" << std::left << std::setw(max_name_size + 2) << "Team Name" << "\tWins\tLosses\t%\tPts For\tPts Against" << std::endl;
+	std::cout << "#\t" << std::left << std::setw(max_name_size + 2) << "Team Name" << "\tWins\tLosses\t%\tPts For\tPts Against" << std::endl << std::endl;
 
 	// print results
-	for (size_t i = 1; i <= scores.size(); i++)
-	{
-		std::tie(name, win, losses, percent, pts_for, pts_against) = scores[i - 1];
-		std::cout << i << ".\t"
+	auto num = 1;
+	for (const auto& item : percent_of_wins_map) {
+		std::tie(name, win, losses, percent, pts_for, pts_against) = scores[item.second];
+		std::cout << num << ".\t"
 			<< std::left << std::setw(max_name_size + 2) << name
 			<< "\t" << win
 			<< "\t" << losses
@@ -301,6 +303,7 @@ void TournamentManager::print_scores(std::vector<std::tuple<std::string, int, in
 			<< "\t" << pts_for
 			<< "\t" << pts_against
 			<< std::endl;
+		num++;
 	}
 }
 
@@ -309,11 +312,11 @@ void TournamentManager::updateScoreBalance(int playerIdFirst, int PlayerIdSecond
 	m_scoreBalanceMutex.lock();
 
 	allGameResults[playerIdFirst].push_back(std::make_tuple(gameResult.scorePlayerA, gameResult.scorePlayerB, gameResult.winnerId == 0 ? 1 : 0));
-	int currentRound_playerA = allGameResults[playerIdFirst].size();
+	auto currentRound_playerA = allGameResults[playerIdFirst].size();
 	playedRound[currentRound_playerA - 1]++;
 
 	allGameResults[PlayerIdSecond].push_back(std::make_tuple(gameResult.scorePlayerB, gameResult.scorePlayerA, gameResult.winnerId == 1 ? 1 : 0));
-	int currentRound_playerB = allGameResults[PlayerIdSecond].size();
+	auto currentRound_playerB = allGameResults[PlayerIdSecond].size();
 	playedRound[currentRound_playerB - 1]++;
 
 	if (playedRound[m_currentRound] == m_numOfPlayers) {

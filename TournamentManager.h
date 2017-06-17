@@ -20,19 +20,19 @@ class TournamentManager
 {
 	std::string m_path;
 	std::vector<std::string> m_allFilesInDir;
-/*
+
  	int m_threads;
-	int m_numOfPlayers;*/
+	int m_numOfPlayers;
 	int m_numOfBoards;
-/*	int m_numOfGames;
+	int m_numOfGames;
 	int m_numOfCycles;
-*/
-	size_t m_threads;
+
+	/*size_t m_threads;
 	size_t m_numOfPlayers;
 	size_t m_numOfGames;
-	size_t m_numOfCycles;
-	std::atomic<bool> wakeMain;
-	std::atomic<bool> finishedGames;
+	size_t m_numOfCycles;*/
+	std::atomic<bool> m_wakeMain;
+	std::atomic<bool> m_finishedGames;
 	std::mutex m_scoreBalanceMutex; //update the score Balance - each thread at his time.
 	std::mutex m_getGameMutex; // get the first game representation from the gameSchedule deque (so no two threads taking the same game).
 	std::mutex m_startThreadsMutex; // Start the threads action at the same time.
@@ -45,14 +45,11 @@ class TournamentManager
 
 	std::vector<std::vector<std::tuple<int, int, int>>> allGameResults; //<points gained, points lost, has won?>
 	std::vector<std::tuple<std::string, int, int, double, int, int>> scoreBalance; // name, wins, loses, percent, pts_for, pts_against
-//	int m_updatedRound;
-	volatile int m_currentRound;
 	std::vector<int> playedRound;
 	std::deque<std::tuple<int , int , int>> tournamentSchedule;
 
 	// define function of the type we expect from IBattleshipGameAlgo
 	typedef IBattleshipGameAlgo *(*GetPlayerFuncType)();
-	//GetPlayerFuncType getPlayerFunc; //TODO do we need it here?
 
 	// vector of <Player Name, dll handle, GetPlayer function ptr>
 	std::vector<std::tuple<std::string, HINSTANCE, GetPlayerFuncType>> dll_vec;
@@ -100,7 +97,7 @@ class TournamentManager
 	/*
 	 * Update the tournament-score-balance according to the last round completed.
 	 */
-	void updateScoreBalanceTable();
+	void updateScoreBalanceTable(int currentRound);
 
 
 	/**

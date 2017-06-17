@@ -337,8 +337,6 @@ void TournamentManager::updateScoreBalanceTable(int currentRound)
 		std::get<5>(scoreBalance[i]) += std::get<1>(allGameResults[i][currentRound]);
 	}
 
-	std::cout << std::endl << "Round number " << currentRound << std::endl; //TODO - Remove before submission
-
 	print_scores(scoreBalance);
 }
 

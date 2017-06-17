@@ -57,7 +57,7 @@ bool TournamentManager::initTournament(int argc, char* argv[])
 	if (! Util::findFiles(m_path, m_allFilesInDir))
 	{
 		CLogger::GetLogger()->Log("Error: Wrong path: %s", m_path.c_str());
-		std::cout << "Error: Wrong path: " << m_path << std::endl;
+		std::cout << "Wrong path: " << m_path << std::endl;
 		return false;
 	}
 	if (! givenThreads) {

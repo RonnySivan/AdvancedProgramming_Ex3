@@ -1,15 +1,10 @@
 #pragma once
-//#include "Util.h" //TODO: unused?
-#include "GameManager.h"
-//#include "Logger.h" //TODO: unused?
 
+#include "GameManager.h"
 #include <thread> //for threads management
 #include <mutex> //for threads management
-//#include <condition_variable> //for threads management //TODO: unused?
 #include <deque> //for threads management
 #include <memory>
-//#include <iomanip> // for print_scores //TODO: unused?
-//#include <algorithm> // for print_scores + std::random_shuffle //TODO: unused?
 #include <windows.h>
 #include <atomic>
 
@@ -26,11 +21,7 @@ class TournamentManager
 	int m_numOfBoards;
 	int m_numOfGames;
 	int m_numOfCycles;
-	// TODO: delete commented lines below?
-	/*size_t m_threads;
-	size_t m_numOfPlayers;
-	size_t m_numOfGames;
-	size_t m_numOfCycles;*/
+
 	std::atomic<bool> m_wakeMain;
 	std::atomic<bool> m_finishedGames;
 	std::mutex m_scoreBalanceMutex; //update the score Balance - each thread at his time.

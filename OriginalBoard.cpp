@@ -251,7 +251,7 @@ std::pair<bool, bool> OriginalBoard::isLegalSeqDeep(int r, int c, int d, std::ve
 }
 
 
-void OriginalBoard::findShips(bool errorsInBoard[numOfBoardErrors], std::vector<BattleShip>& ships) // TODO: is function const?
+void OriginalBoard::findShips(bool errorsInBoard[numOfBoardErrors], std::vector<BattleShip>& ships) 
 {
 	for (auto k = 1; k <= _depth; k++)
 	{

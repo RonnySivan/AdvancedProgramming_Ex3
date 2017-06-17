@@ -1,21 +1,13 @@
 #pragma once
 
-//#include <time.h> //TODO: unused?
 #include <vector>
 #include <tuple>
-//#include <iostream> //TODO: unused?
-//#include <fstream> //TODO: unused?
-//#include <sstream> //TODO: unused?
-//#include <windows.h> //TODO: unused?
-//#include <algorithm> //TODO: unused?
 #include "IBattleshipGameAlgo.h"
 
 #define MAX_ABS_PATH  1024
 
 /*functions for mapping Coordinate*/
 
-// this is one way to define hash function for a type
-// see: http://en.cppreference.com/w/cpp/utility/hash
 struct MyHash {
 	std::size_t operator()(const Coordinate& c) const {
 		return c.row * 7 + c.col * 5 + c.depth * 11;

@@ -26,16 +26,14 @@ void CLogger::CloseLogger() {
 }
 
 
-void CLogger::Log(const char * format, ...)
+void CLogger::Log(const char * format, ...) // TODO: is function const?
 {
-	char* sMessage = nullptr;
-	auto nLength = 0;
 	va_list args;
 	va_start(args, format);
 	//  Return the number of characters in the string referenced the list of arguments.
 	// _vscprintf doesn't count terminating '\0' (that's why +1)
-	nLength = _vscprintf(format, args) + 1;
-	sMessage = new char[nLength]; // TODO - try to avoid using "new"
+	auto nLength = _vscprintf(format, args) + 1;
+	char* sMessage = new char[nLength]; // TODO - try to avoid using "new"
 	vsprintf_s(sMessage, nLength, format, args);
 	//vsprintf(sMessage, format, args);
 	m_Logfile << Util::CurrentDateTime() << ":\t";

@@ -3,7 +3,7 @@
 #include <iostream>
 #include <sstream>
 #include <windows.h>
-#include <algorithm>
+// #include <algorithm> // TODO: unused?
 
 std::string Util::concatenateAbsolutePath(const std::string& dirPath, const std::string& fileName)
 {

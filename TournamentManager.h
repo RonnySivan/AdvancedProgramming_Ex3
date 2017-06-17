@@ -78,6 +78,11 @@ class TournamentManager
 	*/
 	void setDefaultArgs();
 
+	/*
+	 * return true if arg is an integer > 0
+	 */
+	bool parseIntArgument(std::string arg);
+
 	/**
 	 * \brief prints tournament's scores according to the required format
 	 * \param scores vector holding the scores in the following tuple format: Team Name, Wins, Losses, %, Pts For, Pts Against

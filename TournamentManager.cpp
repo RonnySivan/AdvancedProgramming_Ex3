@@ -39,22 +39,10 @@ bool TournamentManager::initTournament(int argc, char* argv[])
 		{
 			if ((i + 1) < argc)
 			{
-				try
-				{
-					auto threadsNum = std::stoi(argv[i + 1]);
-					if (threadsNum < 1)
-					{
-						CLogger::GetLogger()->Log("Error: threads parameter given is illegal");
-					}
-					else 
-					{
-						m_threads = threadsNum;
-						givenThreads = true;
-					}
-
-				}
-				catch (std::invalid_argument) { }
-				catch (std::out_of_range) { }
+				if (parseIntArgument(argv[i + 1]))
+					givenThreads = true;
+				else
+					CLogger::GetLogger()->Log("Warning: threads parameter given is illegal");
 			}
 			break;
 		}
@@ -78,7 +66,7 @@ bool TournamentManager::initTournament(int argc, char* argv[])
 	}
 	
 	CLogger::GetLogger()->Log("Info: Using path = %s", m_path.c_str());
-	CLogger::GetLogger()->Log("Info: Using -threads = %d", m_threads);
+	CLogger::GetLogger()->Log("Info: Using threads = %d", m_threads);
 	return true;
 }
 
@@ -100,25 +88,38 @@ void TournamentManager::setDefaultArgs()
 	while (getline(fin, line))
 	{
 		auto tokens = Util::split(line, ' ');
-		if (tokens.size() < 2)
-		{
+		if (tokens.size() < 2 || tokens.at(0).compare("-threads"))
 			continue;
-		}
-		try
-		{
-			auto value = std::stoi(tokens.at(1));
-			if (tokens.at(0).compare("-threads") == 0 && value >= 2)
-			{
-				m_threads = value;
-				return;
-			}
-		}
-		catch (std::invalid_argument) { }
-		catch (std::out_of_range) { }
+		if (parseIntArgument(tokens.at(1)))
+			return;
+		CLogger::GetLogger()->Log("Warning: The default parameter for -threads given in the *config file <%s> is illegal",
+			configFile.c_str());
 	}
 
 	CLogger::GetLogger()->Log("Warning: The *config file <%s> doesn't contain a valid argument for -thread parameter", 
-								configFile.c_str());
+			configFile.c_str());
+}
+
+bool TournamentManager::parseIntArgument(std::string arg)
+{
+	try
+	{
+		auto value = std::stoi(arg);
+		if (value > 0)
+		{
+			m_threads = value;
+			return true;
+		}
+		return false;
+	}
+	catch (std::invalid_argument)
+	{
+		return false;
+	}
+	catch (std::out_of_range)
+	{
+		return false;
+	}
 }
 
 bool TournamentManager::findBoardAndDlls()

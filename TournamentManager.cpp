@@ -303,6 +303,7 @@ void TournamentManager::print_scores(const std::vector<std::tuple<std::string, i
 			<< std::endl;
 		num++;
 	}
+	std::cout << std::endl << std::endl;
 }
 
 void TournamentManager::updateScoreBalance(int playerIdFirst, int PlayerIdSecond, GameResult gameResult)

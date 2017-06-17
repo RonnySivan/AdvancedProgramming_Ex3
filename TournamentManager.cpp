@@ -275,8 +275,8 @@ void TournamentManager::print_scores(const std::vector<std::tuple<std::string, i
 	double percent;
 
 	// find max name length for column width
-	auto it = std::max_element(scores.begin(), scores.end(), [](auto const &t1, auto const &t2) {
-		return std::get<0>(t1) < std::get<0>(t2);
+	auto it = std::max_element(scores.begin(), scores.end(), [](const auto &t1, const auto &t2) {
+		return (std::get<0>(t1).length() < std::get<0>(t2).length());
 	});
 	auto max_name_size = std::get<0>(*it).length();
 

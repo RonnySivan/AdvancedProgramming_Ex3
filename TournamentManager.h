@@ -26,7 +26,7 @@ class TournamentManager
 	int m_numOfBoards;
 	int m_numOfGames;
 	int m_numOfCycles;
-
+	// TODO: delete commented lines below?
 	/*size_t m_threads;
 	size_t m_numOfPlayers;
 	size_t m_numOfGames;

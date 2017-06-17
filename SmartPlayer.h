@@ -19,7 +19,6 @@ class SmartPlayer : public IBattleshipGameAlgo
 	Coordinate m_last_good_attack; // last attack that hit oponent's ship
 	Coordinate m_cur_first_found; // first location found of an oponent's ship, to be currently attacked
 	std::set< Coordinate > m_first_found_set; // first location found of an oponent's ship (potentially), to be attacked later
-	Coordinate m_ship_edge;
 	std::mt19937 m_generator; //for random search
 	BattleShip m_oponent_ship;
 
@@ -127,10 +126,10 @@ public:
 	~SmartPlayer();
 
 	// overriden functions from IBattleshipGameAlgo
-	virtual void setPlayer(int player) override;				// called every time the player changes his order
-	virtual void setBoard(const BoardData& board) override;		// called once at the beginning of each new game
-	virtual Coordinate attack() override;						// ask player for his move
-	virtual void notifyOnAttackResult(int player, Coordinate move, AttackResult result) override; // last move result
+	void setPlayer(int player) override;				// called every time the player changes his order
+	void setBoard(const BoardData& board) override;		// called once at the beginning of each new game
+	Coordinate attack() override;						// ask player for his move
+	void notifyOnAttackResult(int player, Coordinate move, AttackResult result) override; // last move result
 
 	// block copy and assignment
 	SmartPlayer(const SmartPlayer&) = delete;

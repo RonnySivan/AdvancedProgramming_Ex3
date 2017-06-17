@@ -12,7 +12,7 @@
 
 #define MAX_ABS_PATH  1024
 
-/*functions for mmapping Coordinate*/
+/*functions for mapping Coordinate*/
 
 // this is one way to define hash function for a type
 // see: http://en.cppreference.com/w/cpp/utility/hash

@@ -5,7 +5,6 @@ SmartPlayer::SmartPlayer() : m_id(-1),
                              m_state(State::Search),
 							 m_last_good_attack(0, 0, 0),
                              m_cur_first_found(0, 0, 0),
-                             m_ship_edge(0, 0, 0),
                              m_generator(std::random_device{}())
 {
 }
@@ -27,7 +26,7 @@ void SmartPlayer::setBoard(const BoardData& board)
 	m_potential_attacks.clear();
 	init_potential_attacks(board);
 	findShips(board);
-	m_last_good_attack = m_cur_first_found = m_ship_edge = Coordinate(0, 0, 0);
+	m_last_good_attack = m_cur_first_found = Coordinate(0, 0, 0);
 	m_first_found_set.clear();
 	m_oponent_ship.clearLocations();
 }
@@ -207,7 +206,6 @@ void SmartPlayer::check_first(Coordinate move, const AttackResult& last_attack_r
 			case State::FirstRight:	m_state = State::FirstLeft;		break;
 			case State::FirstLeft:	m_state = State::FirstFwd;		break;
 			case State::FirstFwd:	m_state = State::FirstBwd;		break;
-			//case State::FirstBwd: // last check - should not get here
 		}
 	}
 	else {
@@ -231,15 +229,11 @@ void SmartPlayer::check_first(Coordinate move, const AttackResult& last_attack_r
 void SmartPlayer::check_1(Coordinate move, const AttackResult & last_attack_result)
 {
 	if (last_attack_result == AttackResult::Miss) { // not done with ship - go at opposite direction
-		m_ship_edge = m_last_good_attack;
 		m_last_good_attack = m_cur_first_found;
 		switch (m_state) {
 			case State::Up1:	m_state = State::Down2;	break;
-			//case State::Down1: // should not get here
 			case State::Right1:	m_state = State::Left2;	break;
-			//case State::Left1: // should not get here
 			case State::Fwd1:	m_state = State::Bwd2;	break;
-			//case State::Bwd1: // should not get here
 		}
 	}
 	else {

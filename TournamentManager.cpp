@@ -127,21 +127,22 @@ bool TournamentManager::findBoardAndDlls()
 	auto fileBoard = Util::findSuffix(m_allFilesInDir, ".sboard", 1);
 	auto fileDll1 = Util::findSuffix(m_allFilesInDir, ".dll", 1);
 	auto fileDll2 = Util::findSuffix(m_allFilesInDir, ".dll", 2);
+	auto returnValue = true;
 
 	if (fileBoard.compare("") == 0) {
 		CLogger::GetLogger()->Log("Error: No board files (*.sboard) looking in path: <%s>", m_path.c_str());
 		std::cout << "No board files (*.sboard) looking in path: " << m_path << std::endl;
-		return false;
+		returnValue = false;
 	}
 
 	if (fileDll1.compare("") == 0 || fileDll2.compare("") == 0)
 	{
 		CLogger::GetLogger()->Log("Error: Missing algorithm (dll) files looking in path: <%s>", m_path.c_str());
 		std::cout << "Missing algorithm (dll) files looking in path: " << m_path.c_str() << " (needs at least two)" << std::endl;
-		return false;
+		returnValue =  false;
 	}
 
-	return true;
+	return returnValue;
 }
 
 bool TournamentManager::initDllsVector() {

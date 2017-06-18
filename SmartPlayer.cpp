@@ -105,13 +105,20 @@ Coordinate SmartPlayer::attackState()
 			ans.col--;
 		else if (m_state == State::FirstFwd || m_state == State::Fwd1)
 			ans.depth++;
-		else if (m_state == State::FirstBwd || m_state == State::Bwd1 || m_state == State::Bwd2)
+		else if (m_state == State::FirstBwd || m_state == State::Bwd1 || m_state == State::Bwd2) {
 			ans.depth--;
+			done = check_attack(ans);
+			if (!done){ // for safety
+				sink_update();
+				return attackRand();
+			}
+			break;
+		}
 
 		done = check_attack(ans);
+			
 	} while (!done);
-	
-	
+
 	return  ans;
 }
 

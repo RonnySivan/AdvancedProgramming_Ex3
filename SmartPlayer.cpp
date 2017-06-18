@@ -96,9 +96,9 @@ Coordinate SmartPlayer::attackState()
 	{
 		ans = m_last_good_attack;
 		if (m_state == State::FirstUp || m_state == State::Up1)
-			ans.row--;
-		else if (m_state == State::FirstDown || m_state == State::Down1 || m_state == State::Down2)
 			ans.row++;
+		else if (m_state == State::FirstDown || m_state == State::Down1 || m_state == State::Down2)
+			ans.row--;
 		else if (m_state == State::FirstRight || m_state == State::Right1)
 			ans.col++;
 		else if (m_state == State::FirstLeft || m_state == State::Left1 || m_state == State::Left2)

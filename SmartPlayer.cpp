@@ -140,6 +140,7 @@ void SmartPlayer::check_neighbors(const Coordinate& attack)
 				case 3:	m_state = State::Left1;		break;
 				case 4:	m_state = State::Fwd1;		break;
 				case 5:	m_state = State::Bwd1;		break;
+				default: m_state = State::Search;	break; // for safety
 			}
 			return;
 		}
@@ -206,6 +207,7 @@ void SmartPlayer::check_first(Coordinate move, const AttackResult& last_attack_r
 			case State::FirstRight:	m_state = State::FirstLeft;		break;
 			case State::FirstLeft:	m_state = State::FirstFwd;		break;
 			case State::FirstFwd:	m_state = State::FirstBwd;		break;
+			default:				m_state = State::Search;		break; // for safety
 		}
 	}
 	else {
@@ -219,6 +221,7 @@ void SmartPlayer::check_first(Coordinate move, const AttackResult& last_attack_r
 				case State::FirstLeft:	m_state = State::Left1;		break;
 				case State::FirstFwd:	m_state = State::Fwd1;		break;
 				case State::FirstBwd:	m_state = State::Bwd1;		break;
+				default:				m_state = State::Search;	break; // for safety
 			}
 		}
 		else // Sink
@@ -231,9 +234,10 @@ void SmartPlayer::check_1(Coordinate move, const AttackResult & last_attack_resu
 	if (last_attack_result == AttackResult::Miss) { // not done with ship - go at opposite direction
 		m_last_good_attack = m_cur_first_found;
 		switch (m_state) {
-			case State::Up1:	m_state = State::Down2;	break;
-			case State::Right1:	m_state = State::Left2;	break;
-			case State::Fwd1:	m_state = State::Bwd2;	break;
+			case State::Up1:	m_state = State::Down2;		break;
+			case State::Right1:	m_state = State::Left2;		break;
+			case State::Fwd1:	m_state = State::Bwd2;		break;
+			default:			m_state = State::Search;	break; // for safety
 		}
 	}
 	else {

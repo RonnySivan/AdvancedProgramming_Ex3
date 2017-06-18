@@ -33,7 +33,6 @@ GameResult GameManager::runGame()
 {
 	auto movesCounter = 0;
 	auto turn = PLAYER_A;
-	GameResult gameResult(0, 0, 0);
 
 	/* The Game Loop*/
 	while (numOfShipsA > 0 && numOfShipsB > 0 && (hasMoreMovesA || hasMoreMovesB)) {
@@ -49,14 +48,7 @@ GameResult GameManager::runGame()
 	}
 	
 	/* Create a GameResult Object to return to the Tournament Manager */
-	gameResult.scorePlayerA = m_scorePlayerA;
-	gameResult.scorePlayerB = m_scorePlayerB;
-	if (numOfShipsA == 0)
-		gameResult.winnerId = PLAYER_B;
-	else if (numOfShipsB == 0)
-		gameResult.winnerId = PLAYER_A;
-	else gameResult.winnerId = 2;
-
+	GameResult gameResult(((numOfShipsA == 0) ? (PLAYER_B) : ((numOfShipsB == 0) ? PLAYER_A : 2)), m_scorePlayerA, m_scorePlayerB);
 	return gameResult;
 }
 

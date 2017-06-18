@@ -26,7 +26,7 @@ public:
 	*   Variable Length Logger function
 	*   @param format string for the message to be logged.
 	*/
-	void Log(const char * format, ...);
+	void Log(const char * format, ...) const;
 	/**
 	*   << overloaded function to Logs a message
 	*   @param sMessage message to be logged.

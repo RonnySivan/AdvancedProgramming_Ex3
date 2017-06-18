@@ -233,7 +233,7 @@ void TournamentManager::startTournament()
 	while (currentRound < m_numOfCycles) {
 		std::unique_lock<std::mutex> lock(m_finishOneCycleMutex);
 		finishOneCyclesCV.wait(lock, [this] {return m_wakeMain.load() || m_finishedGames.load();  });
-		while (playedRound[currentRound] == m_numOfPlayers) {
+		while (currentRound < m_numOfCycles && playedRound[currentRound] == m_numOfPlayers) {
 			updateScoreBalanceTable(currentRound);
 			currentRound++;
 		}

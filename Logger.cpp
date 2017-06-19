@@ -5,7 +5,6 @@
 const std::string CLogger::m_sFileName = "game.log";
 CLogger* CLogger::m_pThis = nullptr;
 std::ofstream CLogger::m_Logfile;
-
 CLogger::CLogger()
 {
 
@@ -26,6 +25,7 @@ void CLogger::CloseLogger() {
 	}
 }
 
+
 void CLogger::Log(const char * format, ...) const
 {
 	va_list args;
@@ -41,6 +41,12 @@ void CLogger::Log(const char * format, ...) const
 	va_end(args);
 
 	delete[] sMessage;
+}
+
+void CLogger::Log(const std::string& sMessage)
+{
+	m_Logfile << Util::CurrentDateTime() << ":\t";
+	m_Logfile << sMessage << "\n";
 }
 
 CLogger& CLogger::operator<<(const std::string& sMessage)

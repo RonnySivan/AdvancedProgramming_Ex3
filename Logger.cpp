@@ -34,7 +34,6 @@ void CLogger::Log(const char * format, ...) const
 	auto nLength = _vscprintf(format, args) + 1;
 	auto sMessage = new char[nLength];
 	vsprintf_s(sMessage, nLength, format, args);
-	//vsprintf(sMessage, format, args);
 	m_Logfile << Util::CurrentDateTime() << ":\t";
 	m_Logfile << sMessage << "\n";
 	va_end(args);

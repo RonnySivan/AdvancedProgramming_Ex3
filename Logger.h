@@ -1,11 +1,8 @@
 #pragma once
 
-#include"Util.h"
+#include "Util.h"
 
 #include <fstream>
-//#include <iostream> //TODO: unused?
-//#include <cstdarg> //TODO: unused?
-//#include <string> //TODO: unused?
 
 #define LOGGER CLogger::GetLogger()
 
